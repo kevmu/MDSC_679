@@ -1,0 +1,502 @@
+#!/usr/bin/env python
+
+import csv
+import sys
+import os
+
+
+python_path = sys.argv[0]
+app_dir = os.path.dirname(os.path.realpath(python_path))
+sys.path.append(os.path.abspath(app_dir))
+
+#print(python_path)
+#print(app_dir)
+
+#sys.exit()
+
+### TO DOS
+
+# 1. Make parameter options parser for script.
+
+# 2. Make function to gunzip the .gz files first before processing.
+
+# 3. Split each file parser into functions using def. Make this file a quality control class for a main workflow file.
+'''
+
+return uncompressed_outfile - The uncompressed output file for parsing.
+'''
+def gunzip_input_files(compressed_infile):
+    
+    uncompressed_outfile = compressed_infile.replace("\.gz","")
+    print(compressed_infile)
+    print(uncompressed_outfile)
+    sys.exit()
+    
+    os.system("gunzip -c {compressed_infile} > {uncompressed_outfile}".format(compressed_infile=compressed_infile, uncompressed_outfile=uncompressed_outfile))
+    return(uncompressed_outfile)
+    
+'''
+
+'''
+def parse_phenotypes_file(phenotypes_infile):
+
+    # Counter for header and entry.
+    row_counter = 0
+
+    # Phenotypes data structure.
+    phenotypes_dict = {}
+
+    # Number of phenotypes counter.
+    num_phenotypes = 0
+
+    # Parse the phenotype FT10.txt file.
+    with open(phenotypes_infile, 'r') as csvfile:
+        csv_reader = csv.reader(csvfile, delimiter='\t', quotechar='"')
+        
+        # Iterate over each row in the file.
+        for row in csv_reader:
+        
+            # If the line is not the header.
+            if(row_counter != 0):
+            
+                genotype_id = row[0]
+                flowering_time = row[1]
+                
+                #print(genotype_id, flowering_time)
+                
+                # Filter out phenotypes that have missing data in the form of "NA" and count the number of phenotypes.
+                if(flowering_time != "NA"):
+                    phenotypes_dict[genotype_id] = flowering_time
+                    num_phenotypes = num_phenotypes + 1
+                    
+            row_counter = row_counter + 1
+            
+    return(phenotypes_dict)
+
+
+'''
+
+'''
+def parse_genotypes_file(genotypes_infile):
+
+    # Counter for header and data entry.
+    row_counter = 0
+
+    # Genotypes data structure.
+    genotypes_dict = {}
+
+    # Parse genotypes.csv file.
+    with open(genotypes_infile, 'r') as csvfile:
+        csv_reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        
+        # Array for genotype ids in header line. So we can map SNPs to genotype ids.
+        genotype_ids = []
+        
+        # Iterate over each row in the file.
+        for row in csv_reader:
+            if(row_counter == 0): # If row is header line.
+            
+                # Get the genotype_ids in index 2 (column 3) through end of row.
+                genotype_ids = row[2:]
+                #print(genotype_ids)
+                #print(row_counter)
+                #sys.exit()
+            else: # Else row is data entry.
+                
+                # The chromosome id.
+                chromosome_id = row[0]
+                #print(chromosome_id)
+                
+                # The SNP position id.
+                position_id = row[1]
+                #print(position_id)
+                
+                # Get the alleles in index 2 (column 3) through end of row.
+                alleles = row[2:]
+                
+                # Dictionary for each allele of the variant at a given genotype id.
+                genotype_list = {}
+                
+                # Counter for the number of alleles.
+                total_num_alleles = 0
+                
+                # Index for the genotype_ids and alleles arrays.
+                index_counter = 0
+                
+                # The genotype_ids and the alleles data structures are not the same length.
+                if(len(genotype_ids) != len(alleles)):
+                    print("Length of genotype_ids and length of alleles are not the same.")
+                    sys.exit()
+                    
+                # Iterate over the genotype_ids and alleles data structures while the index_counter is less than the length of the alleles data structure.
+                while(index_counter < len(alleles)):
+                    #print(index_counter)
+                    genotype_id = genotype_ids[index_counter]
+                    allele = alleles[index_counter]
+                    
+                    #print(genotype_id)
+                    #print(allele)
+                    
+                    # If the genotype_id is in the phenotypes_dict then store the allele in the genotype_list.
+                    # Filtering for genotype ids that have flowering time metadata.
+                    if(genotype_id in phenotypes_dict):
+                        genotype_list[genotype_id] = allele
+                        total_num_alleles = total_num_alleles + 1
+                        
+                    index_counter = index_counter + 1
+                #print(genotype_list)
+            
+                #sys.exit()
+                #print(genotype_list)
+                #print(len(genotype_list))
+                #print(total_num_alleles)
+                
+                # Counter for counting allele bases.
+                allele_base_counter = {}
+                
+                # Array list containing the allele bases.
+                allele_base_list = []
+                
+                # Iterate over the genotype_list to count alleles and to check for biallelic SNPs.
+                for genotype_id in genotype_list:
+                    #print(genotype_id)
+                    #print(genotype_list[genotype_id])
+                    
+                    # Initializing allele_base_counter with 0 for the first time.
+                    if(not(genotype_list[genotype_id] in allele_base_counter)):
+                        allele_base_counter[genotype_list[genotype_id]] = 0
+                        
+                    # After allele_base_counter is initialized start counting the bases.
+                    if(genotype_list[genotype_id] in allele_base_counter):
+                        allele_base_counter[genotype_list[genotype_id]] = allele_base_counter[genotype_list[genotype_id]] + 1
+                    
+                    allele_base_list.append(genotype_list[genotype_id])
+                    #sys.exit()
+                #print(allele_base_counter)
+                #print(allele_base_list)
+                
+                # Obtain unique list of allele bases.
+                unique_allele_set = set(allele_base_list)
+                unique_allele_list = list(unique_allele_set)
+                
+                #print(unique_allele_list)
+                
+                # Filter out loci that do not contain biallellic snps.
+                if (len(unique_allele_list) == 2):
+                
+                    # Calculate the minor and major allele frequencies and which is the minor and major allele.
+                    minor_allele_count = min([allele_base_counter[unique_allele_list[0]], allele_base_counter[unique_allele_list[1]]])
+                    major_allele_count = max([allele_base_counter[unique_allele_list[0]], allele_base_counter[unique_allele_list[1]]])
+
+                    #print("Minor allele count:" + str(minor_allele_count))
+                    #print("Major allele count:" + str(major_allele_count))
+
+                    minor_allele_base = ""
+                    major_allele_base = ""
+
+                    # Figure out which base is the minor and major allele.
+                    if(minor_allele_count == allele_base_counter[unique_allele_list[0]]):
+                        minor_allele_base = unique_allele_list[0]
+                        major_allele_base = unique_allele_list[1]
+
+                    else:
+                        minor_allele_base = unique_allele_list[1]
+                        major_allele_base = unique_allele_list[0]
+
+                    #print("Minor allele base:" + str(minor_allele_base))
+                    #print("Major allele base:" + str(major_allele_base))
+
+                    #print(total_num_alleles)
+                    
+                    if(total_num_alleles != (minor_allele_count + major_allele_count)):
+                        print("total_num_alleles != (minor_allele_count + major_allele_count)")
+                        sys.exit()
+                    
+                    #print(genotype_list)
+                    #sys.exit()
+                    
+                    # The genotype_metadata dictionary for storing minor allele count and base and major allele count and base.
+                    genotype_metadata = {}
+                    
+                    # Store the minor allele count and minor allele base character in the genotype_metadata dictionary
+                    genotype_metadata["minor_allele_count"] = minor_allele_count
+                    genotype_metadata["minor_allele_base"] = minor_allele_base
+                    
+                    # Store the major allele count and major allele base character in the genotype_metadata dictionary
+                    genotype_metadata["major_allele_count"] = major_allele_count
+                    genotype_metadata["major_allele_base"] = major_allele_base
+                    
+                    # Store the total number of alleles in the genotype_metadata dictionary
+                    genotype_metadata["total_num_alleles"] = total_num_alleles
+                    
+                    #print(genotype_metadata)
+
+                    # Building the genotypes dictionary to have chromosome_id as the first key and position_id as
+                    # the second key containing a dictionary of genotype ids and the corresponding SNP at that position
+                    # for that genotype id.
+                    if(not(chromosome_id in genotypes_dict)):
+                        genotypes_dict[chromosome_id] = {}
+                    if(not(position_id in genotypes_dict[chromosome_id])):
+                        genotypes_dict[chromosome_id][position_id] = {}
+                        genotypes_dict[chromosome_id][position_id]["genotype_list"] = genotype_list
+                        genotypes_dict[chromosome_id][position_id]["genotype_metadata"] = genotype_metadata
+                    #print(genotypes_dict[chromosome_id][position_id]["genotype_list"])
+                    #print(genotypes_dict[chromosome_id][position_id]["genotype_metadata"])
+                    
+                    #sys.exit()
+                    
+            row_counter = row_counter + 1
+    return(genotypes_dict)
+        
+'''
+
+
+
+'''
+def generate_genotypes_counts_file(genotypes_dict,genotypes_counts_outfile):
+
+    # Writing the genotype counts to a TSV file for input into the snp-hwe.r program for snp exact tests.
+    tsvfile = open(genotypes_counts_outfile, 'w')
+    tsvwriter = csv.writer(tsvfile, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
+
+    # Write the header for the genotype counts TSV file.
+    tsvwriter.writerow(['MARKER_ID', 'p', 'q', 'HET', 'HOM1', 'HOM2'])
+
+    # Make HWE-SNP formatted file.
+    for chromosome_id in genotypes_dict:
+        for position_id in genotypes_dict[chromosome_id]:
+            
+            # Get the genotype_metadata dictionary.
+            genotype_metadata = genotypes_dict[chromosome_id][position_id]["genotype_metadata"]
+            
+            # Get the minor allele count for this locus.
+            minor_allele_count = genotype_metadata["minor_allele_count"]
+            
+            # Get minor allele base nucleotide character for this locus.
+            minor_allele_base = genotype_metadata["minor_allele_base"]
+                    
+            # Get the major allele count for this locus.
+            major_allele_count = genotype_metadata["major_allele_count"]
+            
+            # Get the major allele base nucleotide character for this locus.
+            major_allele_base = genotype_metadata["major_allele_base"]
+        
+            # Get the total number of alleles for this locus.
+            total_num_alleles = genotype_metadata["total_num_alleles"]
+                    
+            # Calculate the minor allele frequency.
+            minor_allele_frequency = float(minor_allele_count) / float(total_num_alleles)
+
+            # Calculate the major allele frequency.
+            major_allele_frequency = float(major_allele_count) / float(total_num_alleles)
+
+            #print(minor_allele_frequency)
+            #print(major_allele_frequency)
+            
+            ## Calculate the Hardy Weinberg Equilibrium (HWE) equation.
+            
+            # The major allele frequency p.
+            p = major_allele_frequency
+            
+            # The minor allele frequency q.
+            q = minor_allele_frequency
+
+            # Test to check that the major allele frequency p and minor allele frequency when added together equal 1. (p + q = 1)
+            if((p + q) == 1):
+                #print("pass")
+                #print(p + q)
+            
+                # The AA homozygote 1 genotype frequency (p ** 2).
+                homozygote_1_freq = (p ** 2)
+                
+                # The aa homozygote 2 genotype frequency (q ** 2).
+                homozygote_2_freq = (q ** 2)
+                
+                # The Aa heterozygote fequency (2pq).
+                heterozygote_freq = 2 * (p * q)
+
+                #print(homozygote_1_freq + homozygote_2_freq + heterozygote_freq)
+                
+                #print(homozygote_1_freq, homozygote_2_freq, heterozygote_freq)
+                
+                #print(homozygote_1_freq * total_num_alleles, homozygote_2_freq * total_num_alleles, heterozygote_freq * total_num_alleles)
+                
+                # Generate a marker id for this locus.
+                marker_id = '_'.join([':'.join(['chromosome',chromosome_id]), ':'.join(['position',position_id])])
+                
+                # The AA homozygote 1 genotype count.
+                homozygote_1_count = homozygote_1_freq * total_num_alleles
+                
+                # The aa homozygote 2 genotype count.
+                homozygote_2_count = homozygote_2_freq * total_num_alleles
+                
+                # The Aa heterozygote count.
+                heterozygote_count = heterozygote_freq * total_num_alleles
+                
+                # Write the genotype counts entry.
+                tsvwriter.writerow([marker_id,p,q,homozygote_1_count,homozygote_2_count,heterozygote_count])
+            else:
+                print("p + q ", str(p + q), " not equal to 1.")
+                sys.exit()
+
+'''
+Function run_SNPHWE_marker_tests(genotypes_counts_infile, output_dir)
+
+Wrapper function for the snp_hwe_marker_tests.r script adapted from the http://csg.sph.umich.edu/abecasis/Exact/r_instruct.html website that  implements a fast exact Hardy-Weinberg Equilibrium test for SNPs as described in Wigginton, et al. (2005). The script makes use of the snp_hwe.r source file (http://csg.sph.umich.edu/abecasis/Exact/snp_hwe.r).
+
+Input:
+
+genotypes_counts_infile - The genotype counts TSV file obtained from the generate_genotypes_counts_file function.
+
+snp_hwe_results_outfile - The SNPHWE marker tests output file.
+
+
+'''
+def run_SNPHWE_marker_tests(genotypes_counts_infile, snp_hwe_results_outfile):
+
+    #rscript snp_hwe_marker_tests.r -i ~/Desktop/macbook_air/MDSC_679/ML_Project_1/genotypes_counts.tsv -o ~/Desktop/macbook_air/MDSC_679/ML_Project_1/SNPHWE_Results/genotype_count_SNPHWE_tests.tsv
+    os.system(("rscript {app_dir}/snp_hwe_marker_tests.r -i {infile} -o {outfile}").format(app_dir=app_dir,infile=genotypes_counts_infile,outfile=snp_hwe_results_outfile))
+
+
+
+
+'''
+Function format_and_filter_SNPHWE_tests(snp_hwe_results_outfile):
+
+
+Format and filter SNPHWE test output file for input into the generate_qqmat_plots function.
+
+Plot the Quantile-Quantile (QQ) Plot for visualization of association tests and genotype quality (type I error rate) and Manhattan Plots to visualize significant SNP variants across the entire genome in the locations that were genotyped.
+
+Input:
+
+snp_hwe_results_infile -
+
+maf_threshold - The Minor Allele Frequency Threshold. MAF values greater than or equal to this value with be retained and MAF values less than this value will be filtered out of the dataset. The default is 0.05 or 5%. Default: 0.05
+Output:
+
+Returns before filtering file and after filtering file for
+'''
+def format_and_filter_SNPHWE_tests(snp_hwe_results_infile, maf_threshold):
+    
+    
+    # Get the output directory from the snp_hwe_results_infile file.
+    #output_dir = os.path.basename(snp_hwe_results_infile)
+    
+    print(os.path.basename(snp_hwe_results_infile))
+    #before_filtering_outfile
+    # Writing the after HWE filtering to a TSV file for input into the qqmat.r program for plotting qqmat input files.
+    #tsvfile1 = open(before_filtering_outfile, 'w')
+    #tsvwriter1 = csv.writer(tsvfile1, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
+
+    # Write the header for the genotype counts TSV file.
+    #tsvwriter1.writerow(['CHR', 'SNP', 'BP', 'P'])
+
+    # Writing the after HWE filtering to a TSV file for input into the qqmat.r program for plotting qqmat input files.
+    #tsvfile2 = open(after_filtering_outfile, 'w')
+    #tsvwriter2 = csv.writer(tsvfile2, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
+
+    # Write the header for the genotype counts TSV file.
+    #tsvwriter2.writerow(['CHR', 'SNP', 'BP', 'P'])
+    
+    # Counter for header and entry.
+    row_counter = 0
+    
+    # Parse the SNP HWE results file.
+    with open(snp_hwe_results_infile, 'r') as csvfile:
+        csv_reader = csv.reader(csvfile, delimiter='\t', quotechar='"')
+        
+        # Iterate over each row in the file.
+        for row in csv_reader:
+        
+            # If the line is not the header.
+            if(row_counter != 0):
+                
+                #print(row)
+                
+                (marker_id, homozygote_1_freq, homozygote_2_freq, heterozygote_freq, p_value) = row
+                print(marker_id, homozygote_1_freq, homozygote_2_freq, heterozygote_freq, p_value)
+                sys.exit()
+                
+            row_counter = row_counter + 1
+    # Before
+    
+    
+    # After
+
+
+'''
+Function generate_qqmat_plots():
+
+Plot the Quantile-Quantile (QQ) Plot for visualization of association tests and genotype quality (type I error rate) and Manhattan Plots to visualize significant SNP variants across the entire genome in the locations that were genotyped.
+
+Input:
+
+ -
+
+output_dir -
+
+'''
+#def generate_qqmat_plots():
+
+'''
+Function format_and_filter_genotypes(, )
+
+Filters genotypes using the minor allele frequency (MAF) and HWE-SNP P-Value.
+
+genotypes_counts_outfile -
+
+genotypes_dict -
+  
+'''
+#def format_and_filter_genotypes():
+
+
+'''
+Function encode_genotypes(genotypes_dict):
+
+
+Encodes the major allele with 0 and the minor allele with 1.
+
+Input:
+
+genotypes_dict -
+
+output_dir -
+
+'''
+#def encode_genotypes(genotypes_dict):
+
+
+
+
+
+#gunzip -c gene_model.gff.gz > gene_model.gff
+#gunzip -c genotype.csv.gz > genotype.csv
+
+maf_threshold = 0.05
+output_dir = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1"
+
+
+phenotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/FT10.txt"
+#phenotypes_dict = parse_phenotypes_file(phenotypes_infile)
+
+genotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/genotype.csv"
+#genotypes_dict = parse_genotypes_file(genotypes_infile)
+
+genotypes_counts_outfile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/genotype_counts.tsv"
+
+
+##### NEED TO INCORPORATE THE ABOVE FUNCTIONS IN THIS FUNCTION THEN AFTER THAT ADD PHENOTYPES TO DICTIONARY.
+#generate_genotypes_counts_file(genotypes_dict,genotypes_counts_outfile)
+
+# Create the snp_hwe_results_output_dir if it does not exist.
+snp_hwe_results_output_dir = os.path.join(output_dir, "SNPHWE_results")
+if not os.path.exists(snp_hwe_results_output_dir):
+    os.makedirs(snp_hwe_results_output_dir)
+    
+# The path to the snp_hwe_results_outfile file.
+snp_hwe_results_outfile = os.path.join(snp_hwe_results_output_dir, "genotype_count_SNPHWE_tests.tsv")
+run_SNPHWE_marker_tests(genotypes_counts_outfile, snp_hwe_results_outfile)
+
+#format_and_filter_SNPHWE_tests(snp_hwe_results_outfile, maf_threshold)
