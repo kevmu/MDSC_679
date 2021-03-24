@@ -4,6 +4,9 @@ import csv
 import sys
 import os
 
+# Load the Pandas libraries with alias 'pd'
+import pandas as pd
+from decimal import Decimal
 
 python_path = sys.argv[0]
 app_dir = os.path.dirname(os.path.realpath(python_path))
@@ -70,7 +73,8 @@ def parse_phenotypes_file(phenotypes_infile):
                     num_phenotypes = num_phenotypes + 1
                     
             row_counter = row_counter + 1
-            
+    csvfile.close()
+    
     return(phenotypes_dict)
 
 
@@ -338,7 +342,8 @@ def generate_genotypes_counts_file(genotypes_dict,genotypes_counts_outfile):
             else:
                 print("p + q ", str(p + q), " not equal to 1.")
                 sys.exit()
-
+    tsvfile.close()
+                
 '''
 Function run_SNPHWE_marker_tests(genotypes_counts_infile, output_dir)
 
@@ -372,57 +377,97 @@ Input:
 
 snp_hwe_results_infile -
 
-maf_threshold - The Minor Allele Frequency Threshold. MAF values greater than or equal to this value with be retained and MAF values less than this value will be filtered out of the dataset. The default is 0.05 or 5%. Default: 0.05
+maf_threshold - The Minor Allele Frequency threshold for filting SNP variants. MAF values greater than or equal to this value with be retained and MAF values less than this value will be filtered out of the dataset. The default for MAF is 0.05 or 5%. Default: 0.05
+
+alpha_value - The alpha value threshold for filtering SNP variants. If the P-value for the SNPHWE tests are greater than or equal to the alpha value it is retained and if the P-value is less than the alpha value will be filtered out of the dataset. The default for alpha is 0.001 or 10^-3. Default: 0.001
+.
 Output:
 
 Returns before filtering file and after filtering file for
 '''
-def format_and_filter_SNPHWE_tests(snp_hwe_results_infile, maf_threshold):
+def format_and_filter_SNPHWE_tests(snp_hwe_results_infile, maf_threshold, alpha_value):
     
+#    data = pd.read_table(snp_hwe_results_infile)
+#
+#    data_filtered=data[(data.p_value!=0)]
+#    data_filtered=data[(data.q>=maf_threshold)&(data.p_value<=alpha_value)]
+#
+#
+#    print(data_filtered.p_value)
     
     # Get the output directory from the snp_hwe_results_infile file.
-    #output_dir = os.path.basename(snp_hwe_results_infile)
-    
-    print(os.path.basename(snp_hwe_results_infile))
-    #before_filtering_outfile
-    # Writing the after HWE filtering to a TSV file for input into the qqmat.r program for plotting qqmat input files.
-    #tsvfile1 = open(before_filtering_outfile, 'w')
-    #tsvwriter1 = csv.writer(tsvfile1, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
+    output_dir = os.path.dirname(snp_hwe_results_infile)
+    filename = os.path.splitext(os.path.basename(snp_hwe_results_infile))[0]
 
-    # Write the header for the genotype counts TSV file.
-    #tsvwriter1.writerow(['CHR', 'SNP', 'BP', 'P'])
+    print(output_dir)
+    print(filename)
+    before_filtering_outfile = os.path.join(output_dir, "_".join([filename, "before_filtering" + ".tsv"]))
+
+    print(before_filtering_outfile)
 
     # Writing the after HWE filtering to a TSV file for input into the qqmat.r program for plotting qqmat input files.
-    #tsvfile2 = open(after_filtering_outfile, 'w')
-    #tsvwriter2 = csv.writer(tsvfile2, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
+    tsvfile1 = open(before_filtering_outfile, 'w')
+    tsvwriter1 = csv.writer(tsvfile1, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
 
     # Write the header for the genotype counts TSV file.
-    #tsvwriter2.writerow(['CHR', 'SNP', 'BP', 'P'])
-    
+    tsvwriter1.writerow(['CHR', 'SNP', 'BP', 'P'])
+
+    filtered_outfile = os.path.join(output_dir, "_".join([filename, "filtered", "-".join(["MAF", str(maf_threshold)]), "-".join(["alpha", str(alpha_value)]) + ".tsv"]))
+    print(filtered_outfile)
+
+    # Writing the filtered to a TSV file for input into the qqmat.r program for plotting qqmat input files.
+    tsvfile2 = open(filtered_outfile, 'w')
+    tsvwriter2 = csv.writer(tsvfile2, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
+
+    # Write the header for the genotype counts TSV file.
+    tsvwriter2.writerow(['CHR', 'SNP', 'BP', 'P'])
+
     # Counter for header and entry.
     row_counter = 0
-    
+
     # Parse the SNP HWE results file.
     with open(snp_hwe_results_infile, 'r') as csvfile:
         csv_reader = csv.reader(csvfile, delimiter='\t', quotechar='"')
-        
+
         # Iterate over each row in the file.
         for row in csv_reader:
-        
+
             # If the line is not the header.
             if(row_counter != 0):
-                
+
                 #print(row)
+
+                (marker_id, p, q, homozygote_1_freq, homozygote_2_freq, heterozygote_freq, p_value) = row
+
+                # Get the chromosome_id from the marker id text.
+                chromosome_id = marker_id.split("_")[0].split(":")[1]
                 
-                (marker_id, homozygote_1_freq, homozygote_2_freq, heterozygote_freq, p_value) = row
-                print(marker_id, homozygote_1_freq, homozygote_2_freq, heterozygote_freq, p_value)
-                sys.exit()
+                # Get the position_id from the marker id text.
+                position_id = marker_id.split("_")[1].split(":")[1]
                 
+                print(chromosome_id)
+                print(position_id)
+
+                # 'CHR', 'SNP', 'BP', 'P'
+                tsvwriter1.writerow([chromosome_id,marker_id,position_id,p_value])
+                
+                # Filter out minor allele frequency < maf_threshold.
+                if(float(q) >= float(maf_threshold)):
+                
+                    # Filter out SNP-HWE p-values > alpha_value.
+                    if(float(p_value) <= float(alpha_value)):
+                        
+                        print("Minor allele Frequency: ", q, " >= ", maf_threshold)
+                        print("P-value: ", p_value, " <= ", alpha_value)
+                        print(marker_id, p, q, homozygote_1_freq, homozygote_2_freq, heterozygote_freq, p_value)
+                        tsvwriter2.writerow([chromosome_id,marker_id,position_id,p_value])
+
+                        
+
             row_counter = row_counter + 1
-    # Before
-    
-    
-    # After
+            
+    tsvfile1.close()
+    tsvfile2.close()
 
 
 '''
@@ -475,6 +520,9 @@ output_dir -
 #gunzip -c genotype.csv.gz > genotype.csv
 
 maf_threshold = 0.05
+
+alpha_value = 0.001
+
 output_dir = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1"
 
 
@@ -497,6 +545,6 @@ if not os.path.exists(snp_hwe_results_output_dir):
     
 # The path to the snp_hwe_results_outfile file.
 snp_hwe_results_outfile = os.path.join(snp_hwe_results_output_dir, "genotype_count_SNPHWE_tests.tsv")
-run_SNPHWE_marker_tests(genotypes_counts_outfile, snp_hwe_results_outfile)
+#run_SNPHWE_marker_tests(genotypes_counts_outfile, snp_hwe_results_outfile)
 
-#format_and_filter_SNPHWE_tests(snp_hwe_results_outfile, maf_threshold)
+format_and_filter_SNPHWE_tests(snp_hwe_results_outfile, maf_threshold, alpha_value)

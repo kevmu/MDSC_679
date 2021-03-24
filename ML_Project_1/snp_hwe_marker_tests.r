@@ -1,8 +1,36 @@
 # The library list of R package dependences.
 library('getopt');
 
+# Remove Scientific notation.
+options(scipen=999)
+
+# @return full path to this script
+get_script_path <- function() {
+    cmdArgs = commandArgs(trailingOnly = FALSE)
+    needle = "--file="
+    match = grep(needle, cmdArgs)
+    if (length(match) > 0) {
+        # Rscript
+        return(normalizePath(sub(needle, "", cmdArgs[match])))
+    } else {
+        ls_vars = ls(sys.frames()[[1]])
+        if ("fileName" %in% ls_vars) {
+            # Source'd via RStudio
+            return(normalizePath(sys.frames()[[1]]$fileName))
+        } else {
+            # Source'd via R console
+            return(normalizePath(sys.frames()[[1]]$ofile))
+        }
+    }
+}
+
+
+
 # Adapted from "R version of SNP-HWE" (http://csg.sph.umich.edu/abecasis/Exact/r_instruct.html).
-source("snp_hwe.r")
+source_file = paste(dirname(get_script_path()),"snp_hwe.r", sep='/')
+
+# Get the source file snp_hwe.r for SNPHWE Fischer Exact Tests
+source(source_file)
 
 # The snp_hwe_marker_tests.r program usage example.
 # rscript snp_hwe_marker_tests.r -i ~/Desktop/macbook_air/MDSC_679/ML_Project_1/genotypes_counts.tsv -o ~/Desktop/macbook_air/MDSC_679/ML_Project_1/SNPHWE_Results/genotype_count_SNP-HWE_tests.tsv
@@ -77,7 +105,7 @@ for (i in 1:n_markers) {
     p_value = SNPHWE(hets, hom_1, hom_2)
     
     # Write the marker entry and results of the SNPHWE function to the snp_hwe_results_outfile file.
-    cat(paste(marker_id,hets,hom_1,hom_2,p_value,sep='\t'),file=snp_hwe_results_outfile,sep='\n',append=TRUE)
+    cat(paste(marker_id,p,q,hets,hom_1,hom_2,p_value,sep='\t'),file=snp_hwe_results_outfile,sep='\n',append=TRUE)
 
 }
 
