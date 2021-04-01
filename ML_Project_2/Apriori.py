@@ -27,9 +27,6 @@ def load_transaction_database(database_infile):
                     transaction_id = row[0]
                     transaction_values = row[1]
                     
-                    # Ensure that transaction_values are sorted.
-                    ########
-                    
                     # Remove any spaces between items
                     transaction_values.replace(" ", "")
                     
@@ -39,22 +36,6 @@ def load_transaction_database(database_infile):
             row_counter += 1
     return transaction_database
             
-#def support(item, num_transactions)
-#
-#    support = (item.frequency / num_transactions)
-#    return support
-
-#def confidence()
-#
-#    confidence = (support(itemX U itemY))/(support(itemX))
-#
-#    return condfidence
-#
-#def lift(itemX, itemY)
-#
-#    lift = (support(itemX U itemY))/(support(itemX)  * support(itemY))
-#    return lift
-
 
 
 '''
@@ -237,39 +218,77 @@ def prune_k_itemset(candidate_support_count,candidate_transaction_ids):
             large_k_itemset.append(k_item)
             large_k_support_count[k_item_key] = candidate_support_count[k_item_key]
             large_k_transaction_ids[k_item_key] = candidate_transaction_ids[k_item_key]
-            
+       
+    # Delete the candidate_support_count data structure.
     del candidate_support_count
     del candidate_transaction_ids
     
     return (large_k_itemset,large_k_support_count,large_k_transaction_ids)
     
-### powerset() function
+def confidence(item, frequent_itemsets):
+
+    #confidence = (support(itemX U itemY))/(support(itemX))
+    
+    print(item)
+    
+    return condfidence
+
+#def lift(item, frequent_itemsets):
+#
+#    lift = (support(itemX U itemY))/(support(itemX)  * support(itemY))
+#    return lift
+
+
+def association_rules(frequent_itemsets, k):
+
+    print(frequent_itemsets)
+    sys.exit()
 
 '''
-Function Apriori - Apriori
+Function Apriori
+
+Description:
+
+The Apriori Algorithm
+
+Input:
+
+transaction_database -
+
+min_support_count -
+
+Output:
+
+frequent_itemsets -
+
+association_rule_metrics -
+
 '''
-def apriori(transaction_database, min_support_count):
+def apriori(transaction_database, min_support_count, min_confidence):
 
     # The frequent_itemsets dictionary data structure.
     frequent_itemsets = {}
     
+    # Generate candidate set 1 and get the large 1-itemset and the large 1 itemset support counts as well as the transaction ids for each item in the large 1-itemset.
     (large_1_itemset, large_1_support_count,large_1_transaction_ids) = generate_candidate_set1(transaction_database, min_support_count)
 
+    # Set k = 1 for 1-Itemset candidate generation.
     k = 1
     
-    # Generate frequent_itemsets at k = 1.
+    # Generate frequent_itemsets at k = 1. Add the data structure for large_1_itemset, large_1_support_count, large_1_transaction_ids
     itemset_dict = {}
     itemset_dict['itemset_data'] = large_1_itemset
     itemset_dict['itemset_support_count'] = large_1_support_count
     itemset_dict['itemset_transaction_ids'] = large_1_transaction_ids
     frequent_itemsets[str(k)] = itemset_dict
     
-    print(large_1_itemset)
-    print(large_1_support_count)
-
-    
+    # Set the current k_itemset to the large_1_itemset. Going forward this will be the previous k_itemset.
     previous_k_itemset = large_1_itemset
+    
+    # Set k = 2 to start the iteration step.
     k = 2
+    
+    # Iterate over the Large k-itemsets until the previous_k_itemset is empty. If previous_k_itemset is empty then terminate the while loop.
     while(len(previous_k_itemset) > 0):
         
         # Generate new apriori candidates.
@@ -327,6 +346,7 @@ def apriori(transaction_database, min_support_count):
         print(candidate_transaction_ids)
         #sys.exit()
         
+        # Prune items from candidate k-itemset that does not meet the following threshold support_count >= min_support_count and return the large_k_itemset, large_k_support_count and large_k_transaction_ids.
         (large_k_itemset, large_k_support_count, large_k_transaction_ids) = prune_k_itemset(candidate_support_count, candidate_transaction_ids)
 
         # Generate frequent_itemsets at k if large_k_itemset is not empty (length is equal to zero).
@@ -338,9 +358,14 @@ def apriori(transaction_database, min_support_count):
             frequent_itemsets[str(k)] = itemset_dict
     
         k = k + 1
+        
+        # Set the previous_k_itemset to the large_k_itemset for next iteration.
         previous_k_itemset = large_k_itemset
         
-        print(frequent_itemsets)
+        #print(frequent_itemsets)
+        
+    association_rule_metrics = association_rules(frequent_itemsets, k)
+    return(frequent_itemsets,association_rule_metrics)
 
 # Minimum support count is 2.
 min_support_count = 2
@@ -353,5 +378,7 @@ transaction_database = load_transaction_database("/Users/kevin.muirhead/Desktop/
 
 print(transaction_database)
 
-apriori(transaction_database, min_support_count)
+
+(frequent_itemsets, association_rule_metrics) = apriori(transaction_database, min_support_count, min_confidence)
+
 
