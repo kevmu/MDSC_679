@@ -1,0 +1,12 @@
+plink --ped ../genotypes.ped --map ../genotypes.map --recode12 --output-missing-genotype 0 --transpose --allow-no-sex --out ../genotypes
+ 
+1042  ./emmax-kin -v -d 10  ../genotypes 
+ 1043  awk -F' ' '{print $1,$2,$6}' < ../genotypes.tfam > ../phenotypes.txt
+ 1044  ./emmax -v -d 10 -t ../genotypes -p ../phenotypes.txt -k ../genotypes.BN.kinf -o ../emmax
+ 1045  ls
+ 1046  cut -f3 ../emmax.ps | sort | less
+
+install.packages("devtools")
+library("devtools")
+install_github("jdstorey/qvalue")
+

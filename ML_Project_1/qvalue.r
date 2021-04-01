@@ -1,7 +1,7 @@
 # The library list of R package dependences.
 library('getopt');
 #library('qqman')
-library('gaston')
+library('qvalue')
 # The qqman_plot.r program usage example.
 
 # Get options, using the spec as defined by the enclosed list.
@@ -46,12 +46,5 @@ dir.create(output_dir, showWarnings = FALSE);
 
 dataframe = read.table(infile, header=TRUE)
 
-summary(dataframe)
-png("question3_plot.png")
-print(sort(as.vector(dataframe$P)))
-#qq(sort(as.vector(dataframe$P)))
-#manhattan(dataframe)
-
-qqplot.pvalues(dataframe$P, col.abline = "red", CB = TRUE, col.CB = "gray80", CB.level = 0.95)
-dev.off()
+head(dataframe)
 

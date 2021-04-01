@@ -5,8 +5,8 @@ import sys
 import os
 
 # Load the Pandas libraries with alias 'pd'
-import pandas as pd
-from decimal import Decimal
+#import pandas as pd
+#from decimal import Decimal
 
 python_path = sys.argv[0]
 app_dir = os.path.dirname(os.path.realpath(python_path))
@@ -52,6 +52,8 @@ def parse_phenotypes_file(phenotypes_infile):
     # Number of phenotypes counter.
     num_phenotypes = 0
 
+    
+    
     # Parse the phenotype FT10.txt file.
     with open(phenotypes_infile, 'r') as csvfile:
         csv_reader = csv.reader(csvfile, delimiter='\t', quotechar='"')
@@ -71,7 +73,6 @@ def parse_phenotypes_file(phenotypes_infile):
                 if(flowering_time != "NA"):
                     phenotypes_dict[genotype_id] = flowering_time
                     num_phenotypes = num_phenotypes + 1
-                    
             row_counter = row_counter + 1
     csvfile.close()
     
@@ -81,8 +82,25 @@ def parse_phenotypes_file(phenotypes_infile):
 '''
 
 '''
-def parse_genotypes_file(genotypes_infile):
+def parse_genotypes_file(genotypes_infile,phenotypes_infile):
 
+    # Get the phenotypes dictionary data structure so we can filter the genotypes by phenotype.
+    phenotypes_dict = parse_phenotypes_file(phenotypes_infile)
+    
+#    # The output directory of the phenotypes file.
+#    output_dir = os.path.dirname(phenotypes_infile)
+    
+    
+#    # Get the output file name of the phenotypes file.
+#    phenotypes_outfile = os.path.join(output_dir, "phenotypes.tsv")
+#
+#    # Writing the phenotypes to a TSV file for input into the RAINBOWR R program for SNP association tests.
+#    tsvfile = open(phenotypes_outfile, 'w')
+#    tsvwriter = csv.writer(tsvfile, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
+#
+#    # Write the header for the phenotypes TSV file.
+#    tsvwriter.writerow(['genotype_id', 'phenotype'])
+#
     # Counter for header and data entry.
     row_counter = 0
 
@@ -144,8 +162,13 @@ def parse_genotypes_file(genotypes_infile):
                     # If the genotype_id is in the phenotypes_dict then store the allele in the genotype_list.
                     # Filtering for genotype ids that have flowering time metadata.
                     if(genotype_id in phenotypes_dict):
+                    
                         genotype_list[genotype_id] = allele
                         total_num_alleles = total_num_alleles + 1
+                        #flowering_time = phenotypes_dict[genotype_id]
+                        
+                        #tsvwriter.writerow([genotype_id,flowering_time])
+
                         
                     index_counter = index_counter + 1
                 #print(genotype_list)
@@ -226,7 +249,7 @@ def parse_genotypes_file(genotypes_infile):
                     genotype_metadata["minor_allele_count"] = minor_allele_count
                     genotype_metadata["minor_allele_base"] = minor_allele_base
                     
-                    # Store the major allele count and major allele base character in the genotype_metadata dictionary
+                    # Store the major allele count and major allele base character in the geonotype_metadata dictionary
                     genotype_metadata["major_allele_count"] = major_allele_count
                     genotype_metadata["major_allele_base"] = major_allele_base
                     
@@ -235,6 +258,7 @@ def parse_genotypes_file(genotypes_infile):
                     
                     #print(genotype_metadata)
 
+                    
                     # Building the genotypes dictionary to have chromosome_id as the first key and position_id as
                     # the second key containing a dictionary of genotype ids and the corresponding SNP at that position
                     # for that genotype id.
@@ -244,20 +268,162 @@ def parse_genotypes_file(genotypes_infile):
                         genotypes_dict[chromosome_id][position_id] = {}
                         genotypes_dict[chromosome_id][position_id]["genotype_list"] = genotype_list
                         genotypes_dict[chromosome_id][position_id]["genotype_metadata"] = genotype_metadata
+                        
                     #print(genotypes_dict[chromosome_id][position_id]["genotype_list"])
                     #print(genotypes_dict[chromosome_id][position_id]["genotype_metadata"])
                     
                     #sys.exit()
                     
             row_counter = row_counter + 1
-    return(genotypes_dict)
+
+
+   
+    #tsvfile.close()
+    return(genotypes_dict,phenotypes_dict)
+ 
+'''
+ 
+'''
+def generate_files_for_plink(phenotype_infile, genotypes_infile):
+
+    # Get the genotypes dictionary data structure so we can iterate through the genotypes.
+    (genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile)
+
+    output_dir = os.path.dirname(genotypes_infile)
+
+
+    # The genotype id list data structure.
+    genotype_list = []
+    
+    # Get the genotype ids list from the first genotypes_dict entry to sort contents of genotypes_dict at each chromosome_id and position_id pair.
+    for chromosome_id in genotypes_dict:
+        for position_id in genotypes_dict[chromosome_id]:
+            genotype_list = genotypes_dict[chromosome_id][position_id]["genotype_list"]
+            break
+        break
+    
+    genotype_ids = sorted([int(genotype_id) for genotype_id in genotype_list.keys()])
+
+    #print(genotype_ids)
+    
+    genotype_ped_outfile = os.path.join(output_dir, "genotypes.ped")
+
+    #print(genotype_ped_outfile)
+
+    # Writing the genotype scores to a TSV file for input into the rainbowr.r program for PLINK input files.
+    tsvfile1 = open(genotype_ped_outfile, 'w')
+    tsvwriter1 = csv.writer(tsvfile1, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
+
+    ## Write the header for the genotype counts TSV file.
+    ##tsvwriter1.writerow(['marker_id'] + genotype_ids)
+
+    genotype_map_outfile = os.path.join(output_dir, "genotypes.map")
+    print(genotype_map_outfile)
+    # genotype map format for PLINK script
+    
+    # Writing the genotype map to a TSV file for input into the PLINK program for PLINK input files.
+    tsvfile2 = open(genotype_map_outfile, 'w')
+    tsvwriter2 = csv.writer(tsvfile2, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
+
+    ## Write the header for the genotype counts TSV file.
+    ##tsvwriter2.writerow(['marker_id', 'chromosome_id', 'position_id'])
+
+
+                
+    # Individual genotypes dictionary for storing the genotypes of each individual for the PED formatted file for PLINK.
+    individual_genotypes = {}
+    
+    # Count for marker ids.
+    counter = 1
+    for chromosome_id in genotypes_dict:
+        for position_id in genotypes_dict[chromosome_id]:
+
+            #print(chromosome_id)
+            #print(position_id)
+            genotype_list = genotypes_dict[chromosome_id][position_id]["genotype_list"]
+            genotype_metadata = genotypes_dict[chromosome_id][position_id]["genotype_metadata"]
+
+            #print(genotype_metadata["minor_allele_base"])
+            #print(genotype_metadata["major_allele_base"])
+
+            minor_allele_base = genotype_metadata["minor_allele_base"]
+            major_allele_base = genotype_metadata["major_allele_base"]
+
+            for genotype_id in genotype_ids:
+
+                allele_base = genotype_list[str(genotype_id)]
+                genotype = " ".join([allele_base, allele_base])
+                
+                
+                
+                if(not(genotype_id in individual_genotypes)):
+                    individual_genotypes[genotype_id] = []
+                    individual_genotypes[genotype_id].append(genotype)
+                elif(genotype_id in individual_genotypes):
+                    individual_genotypes[genotype_id].append(genotype)
+
+            marker_id = "_".join(["Chr" + chromosome_id, "Pos" + position_id])
+            print(marker_id)
+            
+            # PLINK MAP File format.
+            # chromosome (1-22, X, Y or 0 if unplaced)
+            # rs# or snp identifier
+            # Base-pair position (bp units)
+            tsvwriter2.writerow([chromosome_id, marker_id, position_id])
+
+    # PLINK PED File format.
+    # Family ID
+    # Individual ID
+    # Paternal ID
+    # Maternal ID
+    # Sex (1=male; 2=female; other=unknown)
+    # Phenotype
+    for genotype_id in individual_genotypes:
+        #print(genotype_id)
         
-'''
+        if(str(genotype_id) in phenotypes_dict):
+            phenotype = phenotypes_dict[str(genotype_id)]
+            genotype_list = individual_genotypes[genotype_id]
+            #if(float(phenotype) < 50):
+                #tsvwriter1.writerow(["Family_ID", genotype_id, "Paternal_ID", "Maternal_ID", "other", 1] + genotype_list)
+            #elif(float(phenotype) >= 50):
+                            
+                #tsvwriter1.writerow(["Family_ID", genotype_id, "Paternal_ID", "Maternal_ID", "other", 2] + genotype_list)
+            tsvwriter1.writerow(["Family_ID", genotype_id, "Paternal_ID", "Maternal_ID", "other", phenotype] + genotype_list)
+    #print(individual_genotypes)
+    tsvfile1.close()
+    tsvfile2.close()
+
+    return (genotype_ped_outfile, genotype_map_outfile)
 
 
 
 '''
-def generate_genotypes_counts_file(genotypes_dict,genotypes_counts_outfile):
+Function run_SNPHWE_marker_tests(genotypes_counts_infile, output_dir)
+
+Wrapper function for the snp_hwe_marker_tests.r script adapted from the http://csg.sph.umich.edu/abecasis/Exact/r_instruct.html website that  implements a fast exact Hardy-Weinberg Equilibrium test for SNPs as described in Wigginton, et al. (2005). The script makes use of the snp_hwe.r source file (http://csg.sph.umich.edu/abecasis/Exact/snp_hwe.r).
+
+Input:
+
+genotypes_counts_infile - The genotype counts TSV file obtained from the generate_genotypes_counts_file function.
+
+snp_hwe_results_outfile - The SNPHWE marker tests output file.
+
+
+'''
+def run_plink_marker_tests(genotype_ped_file, genotype_map_file):
+
+    out_prefix = os.path.join(os.path.dirname(genotype_ped_file), "genotypes")
+    #os.system()
+    os.system("conda activate plink_env")
+    #plink --ped ../genotypes.ped --map ../genotypes.map --allow-no-sex --assoc --adjust
+    os.system(("plink --ped {genotype_ped_file} --map {genotype_map_file} --allow-no-sex --assoc --adjust --out {out_prefix}").format(genotype_ped_file=genotype_ped_file,genotype_map_file=genotype_map_file, out_prefix=out_prefix))
+    plink_assoc_test_file = "".join([out_prefix, ".qassoc"])
+    plink_assoc_test_file = "".join([out_prefix, ".qassoc.adjusted"])
+
+
+
+def generate_genotypes_summary_file(genotypes_dict,genotypes_counts_outfile):
 
     # Writing the genotype counts to a TSV file for input into the snp-hwe.r program for snp exact tests.
     tsvfile = open(genotypes_counts_outfile, 'w')
@@ -265,6 +431,7 @@ def generate_genotypes_counts_file(genotypes_dict,genotypes_counts_outfile):
 
     # Write the header for the genotype counts TSV file.
     tsvwriter.writerow(['MARKER_ID', 'p', 'q', 'HET', 'HOM1', 'HOM2'])
+    #tsvwriter.writerow(['MARKER_ID', 'HET', 'HOM1', 'HOM2'])
 
     # Make HWE-SNP formatted file.
     for chromosome_id in genotypes_dict:
@@ -310,14 +477,14 @@ def generate_genotypes_counts_file(genotypes_dict,genotypes_counts_outfile):
                 #print("pass")
                 #print(p + q)
             
-                # The AA homozygote 1 genotype frequency (p ** 2).
-                homozygote_1_freq = (p ** 2)
-                
-                # The aa homozygote 2 genotype frequency (q ** 2).
-                homozygote_2_freq = (q ** 2)
-                
-                # The Aa heterozygote fequency (2pq).
-                heterozygote_freq = 2 * (p * q)
+#                # The AA homozygote 1 genotype frequency (p ** 2).
+#                homozygote_1_freq = (p ** 2)
+#
+#                # The aa homozygote 2 genotype frequency (q ** 2).
+#                homozygote_2_freq = (q ** 2)
+#
+#                # The Aa heterozygote fequency (2pq).
+#                heterozygote_freq = 2 * (p * q)
 
                 #print(homozygote_1_freq + homozygote_2_freq + heterozygote_freq)
                 
@@ -328,43 +495,33 @@ def generate_genotypes_counts_file(genotypes_dict,genotypes_counts_outfile):
                 # Generate a marker id for this locus.
                 marker_id = '_'.join([':'.join(['chromosome',chromosome_id]), ':'.join(['position',position_id])])
                 
+#                # The AA homozygote 1 genotype count.
+#                homozygote_1_count = homozygote_1_freq * total_num_alleles
+#
+#                # The aa homozygote 2 genotype count.
+#                homozygote_2_count = homozygote_2_freq * total_num_alleles
+#
+#                # The Aa heterozygote count.
+#                heterozygote_count = heterozygote_freq * total_num_alleles
                 # The AA homozygote 1 genotype count.
-                homozygote_1_count = homozygote_1_freq * total_num_alleles
-                
+                homozygote_1_count = minor_allele_frequency * total_num_alleles
+
                 # The aa homozygote 2 genotype count.
-                homozygote_2_count = homozygote_2_freq * total_num_alleles
-                
+                homozygote_2_count = major_allele_frequency * total_num_alleles
+
                 # The Aa heterozygote count.
-                heterozygote_count = heterozygote_freq * total_num_alleles
+                heterozygote_count = 0 * total_num_alleles
                 
                 # Write the genotype counts entry.
-                tsvwriter.writerow([marker_id,p,q,homozygote_1_count,homozygote_2_count,heterozygote_count])
+                #'MARKER_ID', 'p','q','HET', 'HOM1', 'HOM2'
+                tsvwriter.writerow([marker_id,p,q,heterozygote_count,homozygote_1_count,homozygote_2_count])
+                #tsvwriter.writerow([marker_id,heterozygote_count,homozygote_1_count,homozygote_2_count])
+                
             else:
                 print("p + q ", str(p + q), " not equal to 1.")
                 sys.exit()
     tsvfile.close()
-                
-'''
-Function run_SNPHWE_marker_tests(genotypes_counts_infile, output_dir)
-
-Wrapper function for the snp_hwe_marker_tests.r script adapted from the http://csg.sph.umich.edu/abecasis/Exact/r_instruct.html website that  implements a fast exact Hardy-Weinberg Equilibrium test for SNPs as described in Wigginton, et al. (2005). The script makes use of the snp_hwe.r source file (http://csg.sph.umich.edu/abecasis/Exact/snp_hwe.r).
-
-Input:
-
-genotypes_counts_infile - The genotype counts TSV file obtained from the generate_genotypes_counts_file function.
-
-snp_hwe_results_outfile - The SNPHWE marker tests output file.
-
-
-'''
-def run_SNPHWE_marker_tests(genotypes_counts_infile, snp_hwe_results_outfile):
-
-    #rscript snp_hwe_marker_tests.r -i ~/Desktop/macbook_air/MDSC_679/ML_Project_1/genotypes_counts.tsv -o ~/Desktop/macbook_air/MDSC_679/ML_Project_1/SNPHWE_Results/genotype_count_SNPHWE_tests.tsv
-    os.system(("rscript {app_dir}/snp_hwe_marker_tests.r -i {infile} -o {outfile}").format(app_dir=app_dir,infile=genotypes_counts_infile,outfile=snp_hwe_results_outfile))
-
-
-
-
+    
 '''
 Function format_and_filter_SNPHWE_tests(snp_hwe_results_outfile):
 
@@ -385,89 +542,6 @@ Output:
 
 Returns before filtering file and after filtering file for
 '''
-def format_and_filter_SNPHWE_tests(snp_hwe_results_infile, maf_threshold, alpha_value):
-    
-#    data = pd.read_table(snp_hwe_results_infile)
-#
-#    data_filtered=data[(data.p_value!=0)]
-#    data_filtered=data[(data.q>=maf_threshold)&(data.p_value<=alpha_value)]
-#
-#
-#    print(data_filtered.p_value)
-    
-    # Get the output directory from the snp_hwe_results_infile file.
-    output_dir = os.path.dirname(snp_hwe_results_infile)
-    filename = os.path.splitext(os.path.basename(snp_hwe_results_infile))[0]
-
-    print(output_dir)
-    print(filename)
-    before_filtering_outfile = os.path.join(output_dir, "_".join([filename, "before_filtering" + ".tsv"]))
-
-    print(before_filtering_outfile)
-
-    # Writing the after HWE filtering to a TSV file for input into the qqmat.r program for plotting qqmat input files.
-    tsvfile1 = open(before_filtering_outfile, 'w')
-    tsvwriter1 = csv.writer(tsvfile1, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
-
-    # Write the header for the genotype counts TSV file.
-    tsvwriter1.writerow(['CHR', 'SNP', 'BP', 'P'])
-
-    filtered_outfile = os.path.join(output_dir, "_".join([filename, "filtered", "-".join(["MAF", str(maf_threshold)]), "-".join(["alpha", str(alpha_value)]) + ".tsv"]))
-    print(filtered_outfile)
-
-    # Writing the filtered to a TSV file for input into the qqmat.r program for plotting qqmat input files.
-    tsvfile2 = open(filtered_outfile, 'w')
-    tsvwriter2 = csv.writer(tsvfile2, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
-
-    # Write the header for the genotype counts TSV file.
-    tsvwriter2.writerow(['CHR', 'SNP', 'BP', 'P'])
-
-    # Counter for header and entry.
-    row_counter = 0
-
-    # Parse the SNP HWE results file.
-    with open(snp_hwe_results_infile, 'r') as csvfile:
-        csv_reader = csv.reader(csvfile, delimiter='\t', quotechar='"')
-
-        # Iterate over each row in the file.
-        for row in csv_reader:
-
-            # If the line is not the header.
-            if(row_counter != 0):
-
-                #print(row)
-
-                (marker_id, p, q, homozygote_1_freq, homozygote_2_freq, heterozygote_freq, p_value) = row
-
-                # Get the chromosome_id from the marker id text.
-                chromosome_id = marker_id.split("_")[0].split(":")[1]
-                
-                # Get the position_id from the marker id text.
-                position_id = marker_id.split("_")[1].split(":")[1]
-                
-                print(chromosome_id)
-                print(position_id)
-
-                # 'CHR', 'SNP', 'BP', 'P'
-                tsvwriter1.writerow([chromosome_id,marker_id,position_id,p_value])
-                
-                # Filter out minor allele frequency < maf_threshold.
-                if(float(q) >= float(maf_threshold)):
-                
-                    # Filter out SNP-HWE p-values > alpha_value.
-                    if(float(p_value) <= float(alpha_value)):
-                        
-                        print("Minor allele Frequency: ", q, " >= ", maf_threshold)
-                        print("P-value: ", p_value, " <= ", alpha_value)
-                        print(marker_id, p, q, homozygote_1_freq, homozygote_2_freq, heterozygote_freq, p_value)
-                        tsvwriter2.writerow([chromosome_id,marker_id,position_id,p_value])
-
-                        
-
-            row_counter = row_counter + 1
-            
-    tsvfile1.close()
-    tsvfile2.close()
 
 
 '''
@@ -500,7 +574,7 @@ genotypes_dict -
 '''
 Function encode_genotypes(genotypes_dict):
 
-
+Depreciated
 Encodes the major allele with 0 and the minor allele with 1.
 
 Input:
@@ -522,29 +596,25 @@ output_dir -
 maf_threshold = 0.05
 
 alpha_value = 0.001
-
-output_dir = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1"
-
-
 phenotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/FT10.txt"
-#phenotypes_dict = parse_phenotypes_file(phenotypes_infile)
 
 genotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/genotype.csv"
-#genotypes_dict = parse_genotypes_file(genotypes_infile)
 
-genotypes_counts_outfile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/genotype_counts.tsv"
 
+(genotype_ped_outfile, genotype_map_outfile) = generate_files_for_plink(phenotypes_infile, genotypes_infile)
+
+run_plink_marker_tests(genotype_ped_outfile, genotype_map_outfile)
 
 ##### NEED TO INCORPORATE THE ABOVE FUNCTIONS IN THIS FUNCTION THEN AFTER THAT ADD PHENOTYPES TO DICTIONARY.
 #generate_genotypes_counts_file(genotypes_dict,genotypes_counts_outfile)
 
 # Create the snp_hwe_results_output_dir if it does not exist.
-snp_hwe_results_output_dir = os.path.join(output_dir, "SNPHWE_results")
-if not os.path.exists(snp_hwe_results_output_dir):
-    os.makedirs(snp_hwe_results_output_dir)
-    
+#snp_hwe_results_output_dir = os.path.join(output_dir, "SNPHWE_results")
+#if not os.path.exists(snp_hwe_results_output_dir):
+#    os.makedirs(snp_hwe_results_output_dir)
+#
 # The path to the snp_hwe_results_outfile file.
-snp_hwe_results_outfile = os.path.join(snp_hwe_results_output_dir, "genotype_count_SNPHWE_tests.tsv")
+#snp_hwe_results_outfile = os.path.join(snp_hwe_results_output_dir, "genotype_count_SNPHWE_tests.tsv")
 #run_SNPHWE_marker_tests(genotypes_counts_outfile, snp_hwe_results_outfile)
 
-format_and_filter_SNPHWE_tests(snp_hwe_results_outfile, maf_threshold, alpha_value)
+#format_and_filter_SNPHWE_tests(snp_hwe_results_outfile, maf_threshold, alpha_value)
