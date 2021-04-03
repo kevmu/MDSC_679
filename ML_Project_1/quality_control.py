@@ -20,7 +20,7 @@ emmax = "/home/kevin.muirhead/emmax-beta-07Mar2010/emmax"
 
 #sys.exit()
 
-### TO DOS
+### TO DOs
 
 # 1. Make parameter options parser for script.
 
@@ -372,9 +372,16 @@ def generate_files_for_plink(phenotype_infile, genotypes_infile, maf_threshold, 
             for genotype_id in genotype_ids:
 
                 allele_base = genotype_list[str(genotype_id)]
-                genotype = " ".join([allele_base, allele_base])
+                genotype = "\t".join([allele_base, allele_base])
                 
-                
+                # For FarmCPU numeric format.
+                # Initialize the genotype to a missing value by default.
+                # Genotypes should be either 0, 1, or 2 for homozygote 1, heterozygote, and homozygote 2 genotypes.
+#                encoded_genotype = "-9"
+#                if(allele_base == major_allele_base):
+#                    encoded_genotype = "0"
+#                if(allele_base == minor_allele_base):
+#                    encoded_genotype = "2"
                 
                 if(not(genotype_id in individual_genotypes)):
                     individual_genotypes[genotype_id] = []
