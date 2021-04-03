@@ -298,13 +298,10 @@ def parse_genotypes_file(genotypes_infile,phenotypes_infile,maf_threshold):
 '''
  
 '''
-def generate_files_for_plink(phenotype_infile, genotypes_infile):
+def generate_files_for_plink(phenotype_infile, genotypes_infile, maf_threshold, output_dir):
 
     # Get the genotypes dictionary data structure so we can iterate through the genotypes.
-    (genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile)
-
-    output_dir = os.path.dirname(genotypes_infile)
-
+    (genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile,maf_threshold)
 
     # The genotype id list data structure.
     genotype_list = []
@@ -320,7 +317,14 @@ def generate_files_for_plink(phenotype_infile, genotypes_infile):
 
     #print(genotype_ids)
     
-    genotype_ped_outfile = os.path.join(output_dir, "genotypes.ped")
+    # The plink output directory.
+    plink_output_dir = os.path.join(output_dir, "plink_format_files")
+
+    # Create the plink output directory if it does not exist.
+    if not os.path.exists(plink_output_dir):
+        os.makedirs(plink_output_dir)
+    
+    genotype_ped_outfile = os.path.join(plink_output_dir, "genotypes.ped")
 
     #print(genotype_ped_outfile)
 
@@ -331,7 +335,7 @@ def generate_files_for_plink(phenotype_infile, genotypes_infile):
     ## Write the header for the genotype counts TSV file.
     ##tsvwriter1.writerow(['marker_id'] + genotype_ids)
 
-    genotype_map_outfile = os.path.join(output_dir, "genotypes.map")
+    genotype_map_outfile = os.path.join(plink_output_dir, "genotypes.map")
     print(genotype_map_outfile)
     # genotype map format for PLINK script
     
@@ -428,26 +432,22 @@ snp_hwe_results_outfile - The SNPHWE marker tests output file.
 def run_emmax_association_tests(genotype_ped_file, genotype_map_file, emmax_output_dir):
 
     out_prefix = os.path.join(os.path.dirname(genotype_ped_file), "genotypes")
-    #os.system()
-    os.system("conda activate plink_env")
-    #plink --ped ../genotypes.ped --map ../genotypes.map --recode12 --output-missing-genotype 0 --transpose --allow-no-sex --out ../genotypes
+    #os.system("source ~/.bash_profile")
+    #os.system("conda activate plink_env")
+    # plink --ped ../genotypes.ped --map ../genotypes.map --recode12 --output-missing-genotype 0 --transpose --allow-no-sex --out ../genotypes
     os.system(("plink --ped {genotype_ped_file} --map {genotype_map_file} --recode12 --output-missing-genotype 0 --transpose --allow-no-sex --out {out_prefix}").format(genotype_ped_file=genotype_ped_file,genotype_map_file=genotype_map_file, out_prefix=out_prefix))
+    
 #    genotypes_tfam_file = "".join([out_prefix, ".qassoc"])
 #    genotypes__file = "".join([out_prefix, ".qassoc.adjusted"])
 
 
-    os.system(("{emmax_kin} -v -d 10 {out_prefix}").format(emmax_kin=emmax_kin,out_prefix=out_prefix))
+    #os.system(("{emmax_kin} -v -d 10 {out_prefix}").format(emmax_kin=emmax_kin,out_prefix=out_prefix))
     
-    os.system(("awk -F' ' '\{print $1,$2,$6\}' < {genotypes_tfam_file} > {phenotypes_infile}").format(genotypes_tfam_file=genotypes_tfam_file,phenotypes_infile=phenotypes_infile))
+    #os.system(("awk -F' ' '\{print $1,$2,$6\}' < {genotypes_tfam_file} > {phenotypes_infile}").format(genotypes_tfam_file=genotypes_tfam_file,phenotypes_infile=phenotypes_infile))
     
-    bn_kinf_matrix = ".".join(out_prefix, "BN.kinf")
+    #bn_kinf_matrix = ".".join(out_prefix, "BN.kinf")
     
-    os.system(("{emmax} -v -d 10 -t {out_prefix} -p {phenotypes_infile} -k {bn_kinf_matrix} -o {emmax_output_dir}").format(emmax=emmax,out_prefix=out_prefix,phenotypes_infile=phenotypes_infile,bn_kinf_matrix=bn_kinf_matrix))
-
-
-    
-
-
+    #os.system(("{emmax} -v -d 10 -t {out_prefix} -p {phenotypes_infile} -k {bn_kinf_matrix} -o {emmax_output_dir}").format(emmax=emmax,out_prefix=out_prefix,phenotypes_infile=phenotypes_infile,bn_kinf_matrix=bn_kinf_matrix,emmax_output_dir=emmax_output_dir))
 
 def generate_genotypes_summary_file(genotypes_dict,genotypes_counts_outfile):
 
@@ -622,14 +622,27 @@ output_dir -
 maf_threshold = 0.01
 
 alpha_value = 0.001
+
 phenotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/FT10.txt"
 
 genotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/genotype.csv"
 
+output_dir = "/Users/kevin.muirhead/Desktop/GWAS_output_dir"
 
-(genotype_ped_outfile, genotype_map_outfile) = generate_files_for_plink(phenotypes_infile, genotypes_infile,maf_threshold)
+# Create the output directory if it does not exist.
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+    
+(genotype_ped_outfile, genotype_map_outfile) = generate_files_for_plink(phenotypes_infile, genotypes_infile, maf_threshold, output_dir)
 
-run_plink_marker_tests(genotype_ped_outfile, genotype_map_outfile)
+# The emmax output directory.
+emmax_output_dir = os.path.join(output_dir, "emmax_output_dir")
+
+# Create the emmax output directory if it does not exist.
+if not os.path.exists(emmax_output_dir):
+    os.makedirs(emmax_output_dir)
+    
+run_emmax_association_tests(genotype_ped_outfile, genotype_map_outfile, emmax_output_dir)
 
 ##### NEED TO INCORPORATE THE ABOVE FUNCTIONS IN THIS FUNCTION THEN AFTER THAT ADD PHENOTYPES TO DICTIONARY.
 #generate_genotypes_counts_file(genotypes_dict,genotypes_counts_outfile)
