@@ -64,7 +64,9 @@ def parse_phenotypes_file(phenotypes_infile):
         
             # If the line is not the header.
             if(row_counter != 0):
-            
+                
+                #print(row)
+
                 # The genotype id of the phenotype.
                 genotype_id = row[0]
                 
@@ -301,7 +303,7 @@ def parse_genotypes_file(genotypes_infile,phenotypes_infile,maf_threshold):
 def generate_files_for_plink(phenotype_infile, genotypes_infile, maf_threshold, output_dir):
 
     # Get the genotypes dictionary data structure so we can iterate through the genotypes.
-    (genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile,maf_threshold)
+    (genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile, maf_threshold)
 
     # The genotype id list data structure.
     genotype_list = []
@@ -437,17 +439,18 @@ def run_emmax_association_tests(genotype_ped_file, genotype_map_file, emmax_outp
     # plink --ped ../genotypes.ped --map ../genotypes.map --recode12 --output-missing-genotype 0 --transpose --allow-no-sex --out ../genotypes
     os.system(("plink --ped {genotype_ped_file} --map {genotype_map_file} --recode12 --output-missing-genotype 0 --transpose --allow-no-sex --out {out_prefix}").format(genotype_ped_file=genotype_ped_file,genotype_map_file=genotype_map_file, out_prefix=out_prefix))
     
-#    genotypes_tfam_file = "".join([out_prefix, ".qassoc"])
-#    genotypes__file = "".join([out_prefix, ".qassoc.adjusted"])
+    genotypes_tfam_file = "".join([out_prefix, ".tfam"])
+    emmax_phenotypes_infile = os.path.join(emmax_output_dir, "emmax_phenotypes.txt")
 
+    emmax_outfile_prefix = os.path.join(emmax_output_dir, "emmax")
 
-    #os.system(("{emmax_kin} -v -d 10 {out_prefix}").format(emmax_kin=emmax_kin,out_prefix=out_prefix))
+    os.system(("{emmax_kin} -v -d 10 {out_prefix}").format(emmax_kin=emmax_kin,out_prefix=out_prefix))
     
-    #os.system(("awk -F' ' '\{print $1,$2,$6\}' < {genotypes_tfam_file} > {phenotypes_infile}").format(genotypes_tfam_file=genotypes_tfam_file,phenotypes_infile=phenotypes_infile))
+    os.system(("awk -F' ' '{{print $1,$2,$6}}' < {genotypes_tfam_file} > {emmax_phenotypes_infile}").format(genotypes_tfam_file=genotypes_tfam_file,emmax_phenotypes_infile=emmax_phenotypes_infile))
     
-    #bn_kinf_matrix = ".".join(out_prefix, "BN.kinf")
+    bn_kinf_matrix = ".".join([out_prefix, "BN.kinf"])
     
-    #os.system(("{emmax} -v -d 10 -t {out_prefix} -p {phenotypes_infile} -k {bn_kinf_matrix} -o {emmax_output_dir}").format(emmax=emmax,out_prefix=out_prefix,phenotypes_infile=phenotypes_infile,bn_kinf_matrix=bn_kinf_matrix,emmax_output_dir=emmax_output_dir))
+    os.system(("{emmax} -v -d 10 -t {out_prefix} -p {emmax_phenotypes_infile} -k {bn_kinf_matrix} -o {emmax_outfile_prefix}").format(emmax=emmax,out_prefix=out_prefix,emmax_phenotypes_infile=emmax_phenotypes_infile,bn_kinf_matrix=bn_kinf_matrix,emmax_outfile_prefix=emmax_outfile_prefix))
 
 def generate_genotypes_summary_file(genotypes_dict,genotypes_counts_outfile):
 
@@ -623,11 +626,14 @@ maf_threshold = 0.01
 
 alpha_value = 0.001
 
-phenotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/FT10.txt"
+#phenotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/FT10.txt"
+phenotypes_infile = "/home/kevin.muirhead/FT10.txt"
 
-genotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/genotype.csv"
+#genotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/genotype.csv"
+genotypes_infile = "/home/kevin.muirhead/genotype.csv"
 
-output_dir = "/Users/kevin.muirhead/Desktop/GWAS_output_dir"
+#output_dir = "/Users/kevin.muirhead/Desktop/GWAS_output_dir"
+output_dir = "/home/kevin.muirhead/GWAS_output_dir"
 
 # Create the output directory if it does not exist.
 if not os.path.exists(output_dir):

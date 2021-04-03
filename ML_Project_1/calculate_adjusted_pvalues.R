@@ -51,7 +51,7 @@ dataframe = read.table(infile, header=TRUE)
 pvalues = dataframe[,3]
 
 # Calculate the Bonferroni correction to adjust pvalues.
-bonf_corr_pvalues = p.adjust(p = pvalues, method = "bonferroni")
+bonf_corr_pvalues = p.adjust(p = pvalues, method = "hommel")
 
 # Calculate the FDR qvalue adjusted pvalues.
 qvalues = qvalue(p = pvalues)
