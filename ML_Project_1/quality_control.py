@@ -12,6 +12,9 @@ python_path = sys.argv[0]
 app_dir = os.path.dirname(os.path.realpath(python_path))
 sys.path.append(os.path.abspath(app_dir))
 
+emmax_kin = "/home/kevin.muirhead/emmax-beta-07Mar2010/emmax-kin"
+emmax = "/home/kevin.muirhead/emmax-beta-07Mar2010/emmax"
+
 #print(python_path)
 #print(app_dir)
 
@@ -51,8 +54,6 @@ def parse_phenotypes_file(phenotypes_infile):
 
     # Number of phenotypes counter.
     num_phenotypes = 0
-
-    
     
     # Parse the phenotype FT10.txt file.
     with open(phenotypes_infile, 'r') as csvfile:
@@ -64,7 +65,10 @@ def parse_phenotypes_file(phenotypes_infile):
             # If the line is not the header.
             if(row_counter != 0):
             
+                # The genotype id of the phenotype.
                 genotype_id = row[0]
+                
+                # The flowering time phenotype value.
                 flowering_time = row[1]
                 
                 #print(genotype_id, flowering_time)
@@ -82,7 +86,7 @@ def parse_phenotypes_file(phenotypes_infile):
 '''
 
 '''
-def parse_genotypes_file(genotypes_infile,phenotypes_infile):
+def parse_genotypes_file(genotypes_infile,phenotypes_infile,maf_threshold):
 
     # Get the phenotypes dictionary data structure so we can filter the genotypes by phenotype.
     phenotypes_dict = parse_phenotypes_file(phenotypes_infile)
@@ -239,40 +243,50 @@ def parse_genotypes_file(genotypes_infile,phenotypes_infile):
                         print("total_num_alleles != (minor_allele_count + major_allele_count)")
                         sys.exit()
                     
+                    # Calculate the minor allele frequency.
+                    minor_allele_frequency = float(minor_allele_count) / float(total_num_alleles)
+
+                    # Calculate the major allele frequency.
+                    major_allele_frequency = float(major_allele_count) / float(total_num_alleles)
+            
                     #print(genotype_list)
                     #sys.exit()
                     
-                    # The genotype_metadata dictionary for storing minor allele count and base and major allele count and base.
-                    genotype_metadata = {}
+                    # Filter minor allele frequency (MAF) >= maf_threshold.
+                    if(minor_allele_frequency >= maf_threshold):
                     
-                    # Store the minor allele count and minor allele base character in the genotype_metadata dictionary
-                    genotype_metadata["minor_allele_count"] = minor_allele_count
-                    genotype_metadata["minor_allele_base"] = minor_allele_base
-                    
-                    # Store the major allele count and major allele base character in the geonotype_metadata dictionary
-                    genotype_metadata["major_allele_count"] = major_allele_count
-                    genotype_metadata["major_allele_base"] = major_allele_base
-                    
-                    # Store the total number of alleles in the genotype_metadata dictionary
-                    genotype_metadata["total_num_alleles"] = total_num_alleles
-                    
-                    #print(genotype_metadata)
-
-                    
-                    # Building the genotypes dictionary to have chromosome_id as the first key and position_id as
-                    # the second key containing a dictionary of genotype ids and the corresponding SNP at that position
-                    # for that genotype id.
-                    if(not(chromosome_id in genotypes_dict)):
-                        genotypes_dict[chromosome_id] = {}
-                    if(not(position_id in genotypes_dict[chromosome_id])):
-                        genotypes_dict[chromosome_id][position_id] = {}
-                        genotypes_dict[chromosome_id][position_id]["genotype_list"] = genotype_list
-                        genotypes_dict[chromosome_id][position_id]["genotype_metadata"] = genotype_metadata
+                        # The genotype_metadata dictionary for storing minor allele count and base and major allele count and base.
+                        genotype_metadata = {}
                         
-                    #print(genotypes_dict[chromosome_id][position_id]["genotype_list"])
-                    #print(genotypes_dict[chromosome_id][position_id]["genotype_metadata"])
-                    
-                    #sys.exit()
+                        # Store the minor allele count, minor allele base character, and the minor allele frequency in the genotype_metadata dictionary
+                        genotype_metadata["minor_allele_count"] = minor_allele_count
+                        genotype_metadata["minor_allele_base"] = minor_allele_base
+                        genotype_metadata["minor_allele_frequency"] = minor_allele_frequency
+                        
+                        # Store the major allele count, major allele base character, and the major allele frequency in the geonotype_metadata dictionary
+                        genotype_metadata["major_allele_count"] = major_allele_count
+                        genotype_metadata["major_allele_base"] = major_allele_base
+                        genotype_metadata["major_allele_frequency"] = major_allele_frequency
+                        
+                        # Store the total number of alleles in the genotype_metadata dictionary
+                        genotype_metadata["total_num_alleles"] = total_num_alleles
+                        
+                        #print(genotype_metadata)
+
+                        # Building the genotypes dictionary to have chromosome_id as the first key and position_id as
+                        # the second key containing a dictionary of genotype ids and the corresponding SNP at that position
+                        # for that genotype id.
+                        if(not(chromosome_id in genotypes_dict)):
+                            genotypes_dict[chromosome_id] = {}
+                        if(not(position_id in genotypes_dict[chromosome_id])):
+                            genotypes_dict[chromosome_id][position_id] = {}
+                            genotypes_dict[chromosome_id][position_id]["genotype_list"] = genotype_list
+                            genotypes_dict[chromosome_id][position_id]["genotype_metadata"] = genotype_metadata
+                            
+                        #print(genotypes_dict[chromosome_id][position_id]["genotype_list"])
+                        #print(genotypes_dict[chromosome_id][position_id]["genotype_metadata"])
+                        
+                        #sys.exit()
                     
             row_counter = row_counter + 1
 
@@ -411,15 +425,27 @@ snp_hwe_results_outfile - The SNPHWE marker tests output file.
 
 
 '''
-def run_plink_marker_tests(genotype_ped_file, genotype_map_file):
+def run_emmax_association_tests(genotype_ped_file, genotype_map_file, emmax_output_dir):
 
     out_prefix = os.path.join(os.path.dirname(genotype_ped_file), "genotypes")
     #os.system()
     os.system("conda activate plink_env")
-    #plink --ped ../genotypes.ped --map ../genotypes.map --allow-no-sex --assoc --adjust
-    os.system(("plink --ped {genotype_ped_file} --map {genotype_map_file} --allow-no-sex --assoc --adjust --out {out_prefix}").format(genotype_ped_file=genotype_ped_file,genotype_map_file=genotype_map_file, out_prefix=out_prefix))
-    plink_assoc_test_file = "".join([out_prefix, ".qassoc"])
-    plink_assoc_test_file = "".join([out_prefix, ".qassoc.adjusted"])
+    #plink --ped ../genotypes.ped --map ../genotypes.map --recode12 --output-missing-genotype 0 --transpose --allow-no-sex --out ../genotypes
+    os.system(("plink --ped {genotype_ped_file} --map {genotype_map_file} --recode12 --output-missing-genotype 0 --transpose --allow-no-sex --out {out_prefix}").format(genotype_ped_file=genotype_ped_file,genotype_map_file=genotype_map_file, out_prefix=out_prefix))
+#    genotypes_tfam_file = "".join([out_prefix, ".qassoc"])
+#    genotypes__file = "".join([out_prefix, ".qassoc.adjusted"])
+
+
+    os.system(("{emmax_kin} -v -d 10 {out_prefix}").format(emmax_kin=emmax_kin,out_prefix=out_prefix))
+    
+    os.system(("awk -F' ' '\{print $1,$2,$6\}' < {genotypes_tfam_file} > {phenotypes_infile}").format(genotypes_tfam_file=genotypes_tfam_file,phenotypes_infile=phenotypes_infile))
+    
+    bn_kinf_matrix = ".".join(out_prefix, "BN.kinf")
+    
+    os.system(("{emmax} -v -d 10 -t {out_prefix} -p {phenotypes_infile} -k {bn_kinf_matrix} -o {emmax_output_dir}").format(emmax=emmax,out_prefix=out_prefix,phenotypes_infile=phenotypes_infile,bn_kinf_matrix=bn_kinf_matrix))
+
+
+    
 
 
 
@@ -593,7 +619,7 @@ output_dir -
 #gunzip -c gene_model.gff.gz > gene_model.gff
 #gunzip -c genotype.csv.gz > genotype.csv
 
-maf_threshold = 0.05
+maf_threshold = 0.01
 
 alpha_value = 0.001
 phenotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/FT10.txt"
@@ -601,7 +627,7 @@ phenotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Proje
 genotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/genotype.csv"
 
 
-(genotype_ped_outfile, genotype_map_outfile) = generate_files_for_plink(phenotypes_infile, genotypes_infile)
+(genotype_ped_outfile, genotype_map_outfile) = generate_files_for_plink(phenotypes_infile, genotypes_infile,maf_threshold)
 
 run_plink_marker_tests(genotype_ped_outfile, genotype_map_outfile)
 
