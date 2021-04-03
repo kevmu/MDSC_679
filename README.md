@@ -3,7 +3,7 @@
 Name: Kevin Muirhead
 UCID #: 00502756
 
-Contains the source code, documentation and Microsoft Word Documents for the ML_Project_1 and ML_Project_2.
+Contains the source code, documentation and Microsoft Word Documents for the MDSC 679 Course ML_Project_1 and ML_Project_2.
 
 # MDSC_679: ML_Project_1
 
