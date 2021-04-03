@@ -2,7 +2,8 @@
 library('getopt');
 library('qvalue')
 
-# The .r program usage example.
+# The R program usage example.
+# Rscript adjust_pvalues.R -i emmax.ps -o emmax_adjusted_pvalues.txt
 
 # Get options, using the spec as defined by the enclosed list.
 # We read the options from the default: commandArgs(TRUE).
@@ -50,10 +51,10 @@ dataframe = read.table(infile, header=TRUE)
 pvalues = dataframe[,3]
 
 # Calculate the Bonferroni correction to adjust pvalues.
-bonf_corr_pvalues = p.adjust(pvalues, method = "bonferroni", n = length(pvalues))
+bonf_corr_pvalues = p.adjust(p = pvalues, method = "bonferroni")
 
 # Calculate the FDR qvalue adjusted pvalues.
-qvalues = qvalue(p = dataframe[,3])
+qvalues = qvalue(p = pvalues)
 
 #print(qvalues)
 
