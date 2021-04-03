@@ -372,7 +372,7 @@ def generate_files_for_plink(phenotype_infile, genotypes_infile, maf_threshold, 
             for genotype_id in genotype_ids:
 
                 allele_base = genotype_list[str(genotype_id)]
-                genotype = "\t".join([allele_base, allele_base])
+                genotype = allele_base
                 
                 # For FarmCPU numeric format.
                 # Initialize the genotype to a missing value by default.
@@ -386,7 +386,9 @@ def generate_files_for_plink(phenotype_infile, genotypes_infile, maf_threshold, 
                 if(not(genotype_id in individual_genotypes)):
                     individual_genotypes[genotype_id] = []
                     individual_genotypes[genotype_id].append(genotype)
+                    individual_genotypes[genotype_id].append(genotype)
                 elif(genotype_id in individual_genotypes):
+                    individual_genotypes[genotype_id].append(genotype)
                     individual_genotypes[genotype_id].append(genotype)
 
             marker_id = "_".join(["Chr" + chromosome_id, "Pos" + position_id])
