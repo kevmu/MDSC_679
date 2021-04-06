@@ -1,0 +1,8 @@
+Name: Kevin Muirhead
+UCID #:
+
+Objective: Setting up the Apriori algorithm partition runs using the genotype to phenotype dataset from ML_Project_1 to generate frequent itemset patterns.
+
+# Make apriori_genotype_pattern_file_list.txt file for submitting job arrays to the arc.ucalgary.ca HPC cluster. 
+find /home/kevin.muirhead/MDSC_679/ML_Project_2/apriori_genotype_pattern_files -type f -name "*.tsv" > /home/kevin.muirhead/MDSC_679/ML_Project_2/apriori_genotype_pattern_file_list.txt
+
