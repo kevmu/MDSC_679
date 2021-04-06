@@ -5,19 +5,19 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --time=20:00:00
 #SBATCH --mem=38G
-#SBATCH --array=1-10%10
-#SBATCH --output=apriori_test_dataset2_job_array.%A_%a.out
-#SBATCH --error=apriori_test_dataset2_job_array.%A_%a.err
+#SBATCH --array=1-3%3
+#SBATCH --output=apriori_test_dataset1_job_array.%A_%a.out
+#SBATCH --error=apriori_test_dataset1_job_array.%A_%a.err
 
 # The start time to print.
 start_time=$(date)
 echo "started at: ${start_time}"
 
 # The list of apriori_genotype_pattern_files 
-list="${HOME}/MDSC_679/ML_Project_2/test_datasets/test_dataset2/test_dataset2_file_list.txt"
+list="${HOME}/MDSC_679/ML_Project_2/test_datasets/test_dataset1/test_dataset1_file_list.txt"
 
 # The output directory.
-output_dir="${HOME}/MDSC_679/ML_Project_2/test_datasets/test_dataset2/test_dataset2_output_dir"
+output_dir="${HOME}/MDSC_679/ML_Project_2/test_datasets/test_dataset1/test_dataset1_output_dir"
 mkdir -p $output_dir
 
 IFS=$'\n' array=($(<$list))
