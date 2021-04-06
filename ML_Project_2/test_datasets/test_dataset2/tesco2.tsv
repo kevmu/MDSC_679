@@ -1,0 +1,9 @@
+transaction_id	transaction_values
+ID_1	apple,beer,rice,chicken
+ID_2	apple,beer,rice
+ID_3	apple,beer
+ID_4	apple,mango
+ID_5	milk,beer,rice,chicken
+ID_6	milk,beer,rice
+ID_7	milk,beer
+ID_8	milk,mango
