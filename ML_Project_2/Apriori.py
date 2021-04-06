@@ -46,10 +46,10 @@ class Apriori:
     def __init__(self, database_infile, association_rule_metrics_outfile, min_support_count, min_confidence):
         
         # The minimum support count to retain items.
-        self.min_support_count = min_support_count
+        self.min_support_count = int(min_support_count)
         
         # The minimum confidence to retain items.
-        self.min_confidence = min_confidence
+        self.min_confidence = float(min_confidence)
         
         # The transaction database data structure.
         self.transaction_database = self.load_transaction_database(database_infile)
