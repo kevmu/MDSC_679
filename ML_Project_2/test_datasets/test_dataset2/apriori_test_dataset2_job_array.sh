@@ -14,7 +14,8 @@ start_time=$(date)
 echo "started at: ${start_time}"
 
 # Make a logs directory for the logs files if it does not already exist.
-mkdir -p "${HOME}/MDSC_679/ML_Project_2/test_datasets/test_dataset2/logs" 
+logs_dir = "${HOME}/MDSC_679/ML_Project_2/test_datasets/test_dataset2/logs"
+mkdir -p $logs_dir
 
 # The list of apriori_genotype_pattern_files 
 list="${HOME}/MDSC_679/ML_Project_2/test_datasets/test_dataset2/test_dataset2_file_list.txt"
