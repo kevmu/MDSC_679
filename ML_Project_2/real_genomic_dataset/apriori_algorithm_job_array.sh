@@ -6,16 +6,16 @@
 #SBATCH --time=20:00:00
 #SBATCH --mem=38G
 #SBATCH --array=1-4%4
-#SBATCH --output=logs/apriori_algorithm_job_array.%A_%a.out
-#SBATCH --error=logs/apriori_algorithm_job_array.%A_%a.err
+#SBATCH --output=apriori_algorithm_job_array.%A_%a.out
+#SBATCH --error=apriori_algorithm_job_array.%A_%a.err
 
 # The start time to print out.
 start_time=$(date)
 echo "started at: ${start_time}"
 
 # Make a logs directory for the logs files if it does not already exist.
-logs_dir="${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/logs" 
-mkdir -p $logs_dir
+#logs_dir="${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/logs" 
+#mkdir -p $logs_dir
 
 # The list of apriori_genotype_pattern_files 
 list="${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genotype_pattern_file_list.txt"
