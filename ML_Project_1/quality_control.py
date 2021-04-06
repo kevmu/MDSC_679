@@ -300,10 +300,7 @@ def parse_genotypes_file(genotypes_infile,phenotypes_infile,maf_threshold):
 '''
  
 '''
-def generate_files_for_plink(phenotype_infile, genotypes_infile, maf_threshold, output_dir):
-
-    # Get the genotypes dictionary data structure so we can iterate through the genotypes.
-    (genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile, maf_threshold)
+def generate_files_for_plink(phenotype_dict, genotypes_dict, maf_threshold, output_dir):
 
     # The genotype id list data structure.
     genotype_list = []
@@ -405,7 +402,7 @@ def generate_files_for_plink(phenotype_infile, genotypes_infile, maf_threshold, 
     # Individual ID
     # Paternal ID
     # Maternal ID
-    # Sex (1=male; 2=female; other=unknown)
+    # Sex (1=male; 2=female; other=unknown)x
     # Phenotype
     for genotype_id in individual_genotypes:
         #print(genotype_id)
@@ -460,6 +457,175 @@ def run_emmax_association_tests(genotype_ped_file, genotype_map_file, emmax_outp
     bn_kinf_matrix = ".".join([out_prefix, "BN.kinf"])
     
     os.system(("{emmax} -v -d 10 -t {out_prefix} -p {emmax_phenotypes_infile} -k {bn_kinf_matrix} -o {emmax_outfile_prefix}").format(emmax=emmax,out_prefix=out_prefix,emmax_phenotypes_infile=emmax_phenotypes_infile,bn_kinf_matrix=bn_kinf_matrix,emmax_outfile_prefix=emmax_outfile_prefix))
+
+def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenotypes_dict,alpha_value, parsed_genotypes_output_dir):
+
+    # The genotype id list data structure.
+    genotype_list = []
+    
+    # Get the genotype ids list from the first genotypes_dict entry to sort contents of genotypes_dict at each chromosome_id and position_id pair.
+    for chromosome_id in genotypes_dict:
+        for position_id in genotypes_dict[chromosome_id]:
+            genotype_list = genotypes_dict[chromosome_id][position_id]["genotype_list"]
+            break
+        break
+    
+    genotype_ids = sorted([int(genotype_id) for genotype_id in genotype_list.keys()])
+    
+    # Filtered genotypes data structure.
+    filtered_genotypes_dict = {}
+
+    # Counter for header and row entries.
+    row_counter = 0
+    
+    # Parse adjusted pvalues file.
+    with open(adjusted_pvalues_infile, 'r') as csvfile:
+        csv_reader = csv.reader(csvfile, delimiter='\t', quotechar='"')
+        
+        # Iterate over each row in the file.
+        for row in csv_reader:
+            print(row)
+            # If the current row is not the header line.
+            if(row_counter != 0):
+                    
+                #print(row)
+                #print(row_counter)
+                (marker_id, beta, p_value, bonf_corr_pvalue, q_value) = row
+                
+                print(marker_id, beta, p_value, bonf_corr_pvalue, q_value)
+                
+                # Chr5_Pos26963862
+                # Split the marker_id into the chromosome_id and position_id components for accessing the genotypes_dict contents.
+                chromosome_id = marker_id.split("_")[0].replace("Chr","")
+                position_id = marker_id.split("_")[1].replace("Pos","")
+                
+                # If the pvalue is less than or equal to the alpha_value.
+                # NEED TO FIX ONCE WE HAVE A BETTER ASSOCIATION MAPPING SYSTEM.
+                #print(float(p_value) <= float(alpha_value))
+                if(float(p_value) <= float(alpha_value)):
+                    filtered_genotypes_dict[marker_id] = genotypes_dict[chromosome_id][position_id]
+                
+                    #print(genotypes_dict[chromosome_id][position_id])
+                
+                    #sys.exit()
+            row_counter = row_counter + 1
+    
+    
+    #print(len(filtered_genotypes_dict))
+    #sys.exit()
+    
+   
+    
+    encoded_genotypes_outfile = os.path.join(parsed_genotypes_output_dir, "encoded_genotypes.tsv")
+        
+    # Writing the encoded genotypes to a TSV file.
+    tsvfile1 = open(encoded_genotypes_outfile, 'w')
+    tsvwriter1 = csv.writer(tsvfile1, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
+
+    # Write the header for the encoded genotypes TSV file.
+    tsvwriter1.writerow(['MARKER_ID'] + genotype_ids)
+
+    # The apriori_genotype_pattern_output_dir output directory.
+    apriori_genotype_pattern_output_dir = os.path.join(parsed_genotypes_output_dir, "apriori_genotype_pattern_files")
+
+    # Create the apriori_genotype_pattern output directory if it does not exist.
+    if not os.path.exists(apriori_genotype_pattern_output_dir):
+        os.makedirs(apriori_genotype_pattern_output_dir)
+    
+    # Number of items per chromosome per genotype for Apriori algorithm.
+    num_items = 24
+    
+    # The apriori genotypes file part number. There will be num_genotypes/num_items files. There will be at most num_items per file. Since patterns don't really matter the number of items per "transaction database" doesn't matter as we are trying to find the most frequent item sets.
+    part_num = 1
+    
+    # The apriori input file data structure for organizing data in the proper transaction database format.
+    apriori_genotype_files_dict = {}
+    apriori_genotype_files_dict[str(part_num)] = {}
+    
+    # Row counter for filtered_genotypes_dict iteration.
+    row_counter = 1
+    
+    # Iterate over the filtered genotypes dictionary data structure so that we can make files for training, testing and evaluating our models and to test the Apriori algorithm on a genomic dataset.
+    for marker_id in sorted(filtered_genotypes_dict):
+        print(marker_id)
+        genotype_list = filtered_genotypes_dict[marker_id]["genotype_list"]
+        genotype_metadata = filtered_genotypes_dict[marker_id]["genotype_metadata"]
+        
+        print(genotype_list)
+        
+        # The encoded individual genotypes list. For writting genotypes to a file.
+        encoded_individual_genotypes = []
+        encoded_individual_genotypes.append(marker_id)
+        
+        # If the number of rows equals a multiple of the num_items. This is for organizing the apriori genotype transaction files. Have to partition files by number of items.
+        if((row_counter % num_items) == 0):
+            part_num = part_num + 1
+            apriori_genotype_files_dict[str(part_num)] = {}
+
+            #sys.exit()
+        
+        # Iterate over the sorted genotype ids list so that all genotypes for each row are the same and sorted.
+        for genotype_id in genotype_ids:
+        
+            # Get the SNP variant of the current genotype id.
+            allele_base = genotype_list[str(genotype_id)]
+            print(genotype_metadata)
+            #sys.exit()
+            
+            # The minor allele base for this marker_id.
+            minor_allele_base = genotype_metadata["minor_allele_base"]
+            
+            # The major allele base for this marker_id.
+            major_allele_base = genotype_metadata["major_allele_base"]
+                        
+            print(allele_base + " == " + major_allele_base)
+            print(allele_base + " == " + minor_allele_base)
+            
+            # Compare the SNP variant of the current genotype id to the major and minor alleles. If SNP variant is the major allele then encode as 0 and if the SNP variant is the minor allele then encode as 1.
+            if(allele_base == major_allele_base):
+                encoded_genotype = 0
+                encoded_individual_genotypes.append(encoded_genotype)
+            else:
+                encoded_genotype = 1
+                encoded_individual_genotypes.append(encoded_genotype)
+                
+            # Genotype item pattern for genotype_id from the marker_id and allele base for generating apriori item patterns much like AprioriGWAS (2014) paper.
+            # Chr5_Pos26963862_A
+            apriori_genotype_item_pattern = "_".join([marker_id, allele_base])
+            if(not(str(genotype_id) in apriori_genotype_files_dict[str(part_num)])):
+                apriori_genotype_files_dict[str(part_num)][str(genotype_id)] = []
+                apriori_genotype_files_dict[str(part_num)][str(genotype_id)].append(apriori_genotype_item_pattern)
+
+            elif(str(genotype_id) in apriori_genotype_files_dict[str(part_num)]):
+                apriori_genotype_files_dict[str(part_num)][str(genotype_id)].append(apriori_genotype_item_pattern)
+            
+                
+        # Write the marker_id and the genotype entry sorted by the genotype_ids list.
+        tsvwriter1.writerow(encoded_individual_genotypes)
+        
+        
+        row_counter = row_counter + 1
+        
+    tsvfile1.close()
+    
+    print(apriori_genotype_files_dict)
+    for part_num in apriori_genotype_files_dict:
+        print(str(part_num))
+        
+        encoded_genotypes_outfile = os.path.join(apriori_genotype_pattern_output_dir, "apriori_genotypes_part" + str(part_num) + ".tsv")
+
+        # Writing the transaction genotypes database to a TSV file.
+        tsvfile2 = open(encoded_genotypes_outfile, 'w')
+        tsvwriter2 = csv.writer(tsvfile2, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
+
+        # Write the header for the transaction genotypes database TSV file.
+        tsvwriter2.writerow(["transaction_ids", "transaction_values"])
+        for genotype_id in apriori_genotype_files_dict[str(part_num)]:
+            transaction_values = ",".join(apriori_genotype_files_dict[str(part_num)][str(genotype_id)])
+            tsvwriter2.writerow([str(genotype_id), transaction_values])
+        #sys.exit()
+        tsvfile2.close()
+            
 
 def generate_genotypes_summary_file(genotypes_dict,genotypes_counts_outfile):
 
@@ -633,22 +799,26 @@ output_dir -
 
 maf_threshold = 0.01
 
-alpha_value = 0.001
+alpha_value = 0.0001
 
-#phenotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/FT10.txt"
-phenotypes_infile = "/home/kevin.muirhead/FT10.txt"
+phenotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/FT10.txt"
+#phenotypes_infile = "/home/kevin.muirhead/FT10.txt"
 
-#genotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/genotype.csv"
-genotypes_infile = "/home/kevin.muirhead/genotype.csv"
+genotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/genotype.csv"
+#genotypes_infile = "/home/kevin.muirhead/genotype.csv"
 
-#output_dir = "/Users/kevin.muirhead/Desktop/GWAS_output_dir"
-output_dir = "/home/kevin.muirhead/GWAS_output_dir"
+output_dir = "/Users/kevin.muirhead/Desktop/GWAS_output_dir"
+#output_dir = "/home/kevin.muirhead/GWAS_output_dir"
 
 # Create the output directory if it does not exist.
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
-    
-(genotype_ped_outfile, genotype_map_outfile) = generate_files_for_plink(phenotypes_infile, genotypes_infile, maf_threshold, output_dir)
+   
+# Get the genotypes dictionary data structure so we can iterate through the genotypes.
+(genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile, maf_threshold)
+
+
+#(genotype_ped_outfile, genotype_map_outfile) = generate_files_for_plink(phenotypes_dict, genotypes_dict, maf_threshold, output_dir)
 
 # The emmax output directory.
 emmax_output_dir = os.path.join(output_dir, "emmax_output_dir")
@@ -657,7 +827,19 @@ emmax_output_dir = os.path.join(output_dir, "emmax_output_dir")
 if not os.path.exists(emmax_output_dir):
     os.makedirs(emmax_output_dir)
     
-run_emmax_association_tests(genotype_ped_outfile, genotype_map_outfile, emmax_output_dir)
+#run_emmax_association_tests(genotype_ped_outfile, genotype_map_outfile, emmax_output_dir)
+
+adjusted_pvalues_infile = "/Users/kevin.muirhead/Desktop/GWAS_output_dir/emmax_output_dir/emmax_adjusted_pvalues.txt"
+#adjusted_pvalues_infile = "/home/kevin.muirhead/GWAS_output_dir/emmax_output_dir/emmax_adjusted_pvalues.tsv"
+
+# The parsed_genotypes_output_dir output directory.
+parsed_genotypes_output_dir = os.path.join(output_dir, "parsed_genotypes_output_dir")
+
+# Create the emmax output directory if it does not exist.
+if not os.path.exists(parsed_genotypes_output_dir):
+    os.makedirs(parsed_genotypes_output_dir)
+    
+parse_multiple_corrected_tests(adjusted_pvalues_infile, genotypes_dict, phenotypes_dict, alpha_value, parsed_genotypes_output_dir)
 
 ##### NEED TO INCORPORATE THE ABOVE FUNCTIONS IN THIS FUNCTION THEN AFTER THAT ADD PHENOTYPES TO DICTIONARY.
 #generate_genotypes_counts_file(genotypes_dict,genotypes_counts_outfile)
