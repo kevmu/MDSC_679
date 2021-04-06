@@ -10,9 +10,9 @@
 #SBATCH --error=apriori_algorithm_job_array.%A_%a.err
 
 # The list of apriori_genotype_pattern_files 
-list="/home/kevin.muirhead/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genotype_pattern_file_list.txt"
+list="${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genotype_pattern_file_list.txt"
 
-output_dir="/home/kevin.muirhead/MDSC_679/ML_Project_2/real_genomic_dataset"
+output_dir="${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset"
 mkdir -p $output_dir
 
 
