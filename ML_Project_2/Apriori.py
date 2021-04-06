@@ -640,31 +640,31 @@ class Apriori:
 
 #### MAIN FUNCTION FOR TESTING ####
 
-output_dir = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_2/test_datasets/association_rules"
-
-# Create the output directory if it does not exist.
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-    
-# The transaction database input file.
-database_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_2/test_datasets/transaction_database1.tsv"
-
-# Get the basename of the transaction database input file.
-basename = os.path.basename(database_infile)
-
-# Get the filename without the extension so we can make the association rule metrics output filename.
-filename = os.path.splitext(basename)[0]
-
-# The association rule metrics output file.
-association_rule_metrics_outfile = os.path.join(output_dir, "_".join([filename, "association_rule_metrics.tsv"]))
-
-# Minimum support count is 2.
-min_support_count = 2
-
-# Minimum confidence is 60 %.
-min_confidence = 0.60
-
-Apriori(database_infile, association_rule_metrics_outfile, min_support_count, min_confidence)
+#output_dir = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_2/test_datasets/association_rules"
+#
+## Create the output directory if it does not exist.
+#if not os.path.exists(output_dir):
+#    os.makedirs(output_dir)
+#    
+## The transaction database input file.
+#database_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_2/test_datasets/transaction_database1.tsv"
+#
+## Get the basename of the transaction database input file.
+#basename = os.path.basename(database_infile)
+#
+## Get the filename without the extension so we can make the association rule metrics output filename.
+#filename = os.path.splitext(basename)[0]
+#
+## The association rule metrics output file.
+#association_rule_metrics_outfile = os.path.join(output_dir, "_".join([filename, "association_rule_metrics.tsv"]))
+#
+## Minimum support count is 2.
+#min_support_count = 2
+#
+## Minimum confidence is 60 %.
+#min_confidence = 0.60
+#
+#Apriori(database_infile, association_rule_metrics_outfile, min_support_count, min_confidence)
 
 
 
