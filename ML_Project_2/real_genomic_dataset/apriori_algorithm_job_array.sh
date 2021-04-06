@@ -21,4 +21,6 @@ IFS=$'\n' array=($(<$list))
 # The apriori_genotype_pattern_file.
 apriori_genotype_pattern_file=${array[$SLURM_ARRAY_TASK_ID-1]}
 
+python3 "${HOME}/MDSC_679/ML_Project_2/execute_apriori.py" -i $apriori_genotype_pattern_file -o $output_dir
+
 

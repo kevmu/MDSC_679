@@ -6,4 +6,6 @@ Objective: Setting up the Apriori algorithm partition runs using the genotype to
 # Make apriori_genotype_pattern_file_list.txt file for submitting job arrays to the arc.ucalgary.ca HPC cluster. 
 find "${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genotype_pattern_files" -type f -name "*.tsv" > "${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genotype_pattern_file_list.txt"
 
+# Submit the slurm job arrays to run multiple apriori programs on multiple transaction databases at the same time.
+sbatch < "${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_algorithm_job_array.sh"
 
