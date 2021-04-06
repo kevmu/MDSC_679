@@ -89,7 +89,7 @@ class Apriori:
             # Iterate over each row in the file.
             for row in csv_reader:
             
-                print(row_counter)
+                #print(row_counter)
                 
                 # If the line is not the header.
                 if(row_counter != 0):
@@ -143,7 +143,7 @@ class Apriori:
         
         # Iterate over each transaction in the database.
         for transaction_id in self.transaction_database:
-            print(transaction_id)
+            #print(transaction_id)
             #sys.exit()
             #print(transaction_database[transaction])
             items = self.transaction_database[transaction_id].split(",")
@@ -218,7 +218,7 @@ class Apriori:
         # Else prev_candidate_itemset is the Lk_itemset (Large k-Itemset).
         elif((k - 1) > 1):
             
-            print(prev_candidate_itemset)
+            #print(prev_candidate_itemset)
             
             # A dictionary datastructure to get the set of previous_1_itemset
             previous_1_itemset_dict = {}
@@ -226,7 +226,7 @@ class Apriori:
             # Iterate through all the items in the prev_candidate_itemset.
             for prev_k_item in prev_candidate_itemset:
                 prev_k_item = list(prev_k_item)
-                print(prev_k_item)
+                #print(prev_k_item)
                 
                 # Iterate through each item in the prev_k_item list.
                 for item in prev_k_item:
@@ -263,7 +263,7 @@ class Apriori:
                     new_candidate_k_itemset.append(item_set)
                     break
                     
-    #    print(new_candidate_k_itemset)
+        #print(new_candidate_k_itemset)
         del candidate_k_itemset
 
         return(new_candidate_k_itemset)
@@ -272,10 +272,13 @@ class Apriori:
     def prune_k_itemset(self, candidate_support_count, candidate_transaction_ids):
         #print(candidate_support_count)
         
-        #### NEEED TO LABEL THESE DATA STRUCTURES.
+        # The large-k itemset data structure.
         large_k_itemset = []
+        
+        # The large-k support count data structure.
         large_k_support_count = {}
             
+        # The large-k transaction ids data structure.
         large_k_transaction_ids = {}
         
         # Iterate over all the candidate counts.
@@ -292,7 +295,7 @@ class Apriori:
             # If item has a support_count less than the min_support_count then append item to item_list.
             if(support_count >= self.min_support_count):
                 
-                print(k_item_key)
+                #print(k_item_key)
                 #sys.exit()
                 k_item = tuple(k_item_key.split(","))
                 #sys.exit()
@@ -360,7 +363,7 @@ class Apriori:
             for k_item in candidate_itemset_k:
                 k_item = list(k_item)
                 k_item_key = ",".join(k_item)
-                print(k_item_key)
+                #print(k_item_key)
                 candidate_support_count[k_item_key] = 0
 
             #print(candidate_support_count)
@@ -368,7 +371,7 @@ class Apriori:
 
             # Iterate over each transaction in the database.
             for transaction_id in self.transaction_database:
-                print(transaction_id)
+                #print(transaction_id)
                 #print(transaction_database[transaction_id])
                 
                 # Split the transaction into a list of items.
@@ -382,13 +385,13 @@ class Apriori:
                     #print(k_itemB)
                     # If k_itemB is a subset of k_itemA then increment
                     if(k_itemB.issubset(k_itemA)):
-                        print(k_itemA, k_itemB)
-                        print(k_itemB.issubset(k_itemA))
+                        #print(k_itemA, k_itemB)
+                        #print(k_itemB.issubset(k_itemA))
                         k_itemB = sorted(list(k_itemB))
                         
                         # Join the sorted k_itemB list into a key for the candidate_support_count to increment the counter.
                         k_itemB_key = ",".join(k_itemB)
-                        print(k_itemB_key)
+                        #print(k_itemB_key)
                         
                         # Increment candidate_support_count at k_itemB_key because k_itemB_key is in the transaction.
                         candidate_support_count[k_itemB_key] = candidate_support_count[k_itemB_key] + 1
@@ -398,9 +401,9 @@ class Apriori:
                         elif(k_itemB_key in candidate_transaction_ids):
                             candidate_transaction_ids[k_itemB_key].append(transaction_id)
                     
-            print(candidate_support_count)
+            #print(candidate_support_count)
 
-            print(candidate_transaction_ids)
+            #print(candidate_transaction_ids)
             #sys.exit()
             
             # Prune items from candidate k-itemset that does not meet the following threshold support_count >= min_support_count and return the large_k_itemset, large_k_support_count and large_k_transaction_ids.
@@ -530,7 +533,7 @@ class Apriori:
   
             # Iterate over the itemset_support_count data structure for support_counts for each item in the itemset.
             for itemA in sorted(itemset_support_count_A):
-                print(itemA)
+                #print(itemA)
                 
                 # Get the support count of the item in the itemset.
                 itemA_support_count = itemset_support_count_A[itemA]
@@ -568,7 +571,7 @@ class Apriori:
                         # Get the support count for itemB.
                         itemB_support_count = itemset_support_count_B[str(itemB)]
                         
-                        print(itemB_support_count)
+                        #print(itemB_support_count)
                         
                         # The number of transactions in the database.
                         num_transactions = len(self.transaction_database.keys())
@@ -584,20 +587,9 @@ class Apriori:
                         # confidence = support(itemA U itemB)/support(itemB)
                         confidence = self.confidence(itemA_support, itemB_support)
                         
-#                        print("set_list_itemB")
-#                        print(set_list_itemB)
-#                        print(type(set_list_itemB))
-#                        print(type(itemA_list))
                         # Getting difference of itemA_list and set_list_itemB to obtain a subset of the two for print out of confidence caluclations.
                         subset_list = [i for i in itemA_list + set_list_itemB if i not in itemA_list or i not in set_list_itemB]
-#                        print(li_dif)
-#                        sys.exit()
-#                        subset_list = []
-#                        for element in itemA_list:
-#                            if(not(element == itemB)):
-#                                subset_list.append(element)
-                        
-                        
+
                         # Join the list into a string representation of the subset.
                         subset = ",".join(subset_list)
                         #print(subset)
