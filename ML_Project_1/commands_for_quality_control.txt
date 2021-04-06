@@ -10,3 +10,8 @@ install.packages("devtools")
 library("devtools")
 install_github("jdstorey/qvalue")
 
+
+# Parsing output of association mapping for pther steps. ## Need to fix association step later. Need data to work with to progress.
+awk -F'\t' '($3 <= 0.01){print $0}' < ~/Desktop/GWAS_output_dir/emmax_output_dir/emmax.ps > ~/Desktop/GWAS_output_dir/emmax_output_dir/emmax_pvalue_5_pct.txt
+
+
