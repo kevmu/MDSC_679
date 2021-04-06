@@ -1,0 +1,41 @@
+Name: Kevin Muirhead
+Date: March 31st, 2021
+
+Objective: Format example transaction databases from https://github.com/chonyy/apriori_python/dataset.
+
+So that we can use them as example datasets to test the apriori algorithm with that we implemented ourselves.
+
+Can use the program at github repository to generate association rules for the datasets to verify testing of my apriori algorithm.
+
+
+# Download the github repository from https://github.com/chonyy/apriori_python
+git clone https://github.com/chonyy/apriori_python
+
+# Change directory to apriori_python.
+cd apriori_python
+
+# Change directory to datasets.
+cd datasets
+
+# Create the formatted_datasets directory.
+mkdir formatted_datasets
+
+# Format datasets to format for my apriori algorithm python program
+# transaction_ids are in the form of ID_${COUNTER} where COUNTER is incremented by 1.
+# transaction_values are the transaction entry.
+# Example
+# transaction_ids	transaction_values
+# ID_1	1,2,3,4,5,6
+for i in $(ls | grep "\.csv"); do echo $i; filename=$(echo $i | sed 's/\.csv//g'); echo -e "transaction_id\ttransaction_values" >> formatted_datasets/$filename.tsv; COUNTER=1; for j in $(cat $i); do echo $j; echo -e "ID_${COUNTER}\t$j" >> formatted_datasets/$filename.tsv; COUNTER=$[$COUNTER +1]; done; done
+
+# Copy formatted_datasets directory to ../test_datasets2
+cp -rf formatted_datasets ../test_dataset2
+
+# Generate file list using the find command.
+find /home/kevin.muirhead/MDSC_679/ML_Project_2/test_datasets/test_dataset2 -type f -name "*.tsv" > test_dataset2_file_list.txt
+
+# Submit array jobs to slurm HPC cluster (arc.ucalgary.ca).
+sbatch < "${HOME}/MDSC_679/ML_Project_2/test_datasets/test_dataset2/apriori_test_dataset2_job_array.sh"
+
+# Count how many transactions per database file as well as number of items per transaction to get a few stats.
+

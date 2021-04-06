@@ -1,0 +1,13 @@
+Name: Kevin Muirhead
+Date: March 31st, 2021
+
+Objective: Format example transaction databases from multiple sources so that we can use them as example datasets to test the apriori algorithm with that we implemented ourselves.
+
+# Generate file list using the find command.
+find /home/kevin.muirhead/MDSC_679/ML_Project_2/test_datasets/test_dataset1 -type f -name "*.tsv" > test_dataset1_file_list.txt
+
+# Submit array jobs to slurm HPC cluster (arc.ucalgary.ca).
+sbatch < "${HOME}/MDSC_679/ML_Project_2/test_datasets/test_dataset1/apriori_test_dataset1_job_array.sh"
+
+# Count how many transactions per database file as well as number of items per transaction to get a few stats.
+
