@@ -1,0 +1,6 @@
+transaction_id	transaction_value
+1	A,C,D
+2	B,C,D
+3	A,B,C,D
+4	B,D
+5	A,B,C,D

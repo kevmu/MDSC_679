@@ -1,0 +1,83 @@
+Dataset obtained from https://towardsdatascience.com/apriori-association-rule-mining-explanation-and-python-implementation-290b42afdfc6
+
+Minimum support = 50%
+Minimum confidence 66%
+
+transaction_id	transaction_value
+10	A,C,D
+20	B,C,E
+30	A,B,C,E
+40	B,E
+
+Step 1:
+
+k = 1
+
+C1
+
+Itemset	supp_count
+A	2
+B	3
+C	3
+D	1
+E	3
+
+L1
+
+Itemset	supp_count
+A	2
+B	3
+C	3
+E	3
+
+C2
+
+Itemset
+A,B
+A,C
+A,E
+B,C
+B,E
+C,E
+
+Step 2:
+
+k = 2
+
+C2
+
+Itemset	supp_count
+A,B	1
+A,C	2
+A,E	1
+B,C	2
+B,E	3
+C,E	2
+
+L2
+
+Itemset	supp_count
+A,C	2
+B,C	2
+B,E	3
+C,E	2
+
+C3
+
+Itemset
+B,C,E
+
+
+Step 3
+
+C3
+
+Itemset
+B,C,E
+
+k = 3
+
+L3 
+
+Itemset	supp_count
+B,C,E	2

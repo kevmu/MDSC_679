@@ -1,0 +1,6 @@
+transaction_id	transaction_value
+10	A,C,D
+20	B,C,E
+30	A,B,C,E
+40	B,E
+

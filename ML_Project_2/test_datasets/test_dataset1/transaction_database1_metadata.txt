@@ -1,0 +1,86 @@
+Dataset obtained from https://www.geeksforgeeks.org/apriori-algorithm/
+
+minimum support count is 2
+minimum confidence is 60%
+
+Step-1:
+
+C1 (candidate set)
+k = 1
+
+Itemset	sup_count
+I1	6
+I2	7
+I3	6
+I4	2
+I5	2
+
+L1 (Large 1-Itemset)
+
+Itemset	sup_count
+I1	6
+I2	7
+I3	6
+I4	2
+I5	2
+
+
+Step-2: 
+
+k=2
+
+Generate candidate set C2 using L1 
+
+Itemset	sup_count
+I1,I2	4
+I1,I3	4
+I1,I4	1
+I1,I5	2
+I2,I3	4
+I2,I4	2
+I2,I5	2
+I3,I4	0
+I3,I5	1
+I4,I5	0
+
+Compare candidate (C2) support count with minimum support count giving us itemset L2.
+
+Itemset	sup_count
+I1,I2	4
+I1,I3	4
+I1,I5	2
+I2,I3	4
+I2,I4	2
+I2,I5	2
+
+Step-3:
+
+k = 3
+
+Generate candidate set C3 using L2
+
+Itemset	sup_count
+I1,I2,I3	2
+I1,I2,I5	2
+
+Find support count of these remaining itemset by searching in dataset giving us itemset L3.
+
+Itemset	sup_count
+I1,I2,I3	2
+I1,I2,I5	2
+
+Confidence –
+A confidence of 60% means that 60% of the customers, who purchased milk and bread also bought butter.
+
+Confidence(A->B)=Support_count(A∪B)/Support_count(A)
+
+So here, by taking an example of any frequent itemset, we will show the rule generation.
+Itemset {I1, I2, I3} //from L3
+SO rules can be
+[I1^I2]=>[I3] //confidence = sup(I1^I2^I3)/sup(I1^I2) = 2/4*100=50%
+[I1^I3]=>[I2] //confidence = sup(I1^I2^I3)/sup(I1^I3) = 2/4*100=50%
+[I2^I3]=>[I1] //confidence = sup(I1^I2^I3)/sup(I2^I3) = 2/4*100=50%
+[I1]=>[I2^I3] //confidence = sup(I1^I2^I3)/sup(I1) = 2/6*100=33%
+[I2]=>[I1^I3] //confidence = sup(I1^I2^I3)/sup(I2) = 2/7*100=28%
+[I3]=>[I1^I2] //confidence = sup(I1^I2^I3)/sup(I3) = 2/6*100=33%
+
