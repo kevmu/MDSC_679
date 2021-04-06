@@ -184,9 +184,9 @@ class Apriori:
             #print(support_count)
             
             # If item has a support_count less than the min_support_count then append item to item_list.
-            if(support_count < min_support_count):
-                #print("support_count < min_support_count")
-                #print(str(support_count) + " < " + str(min_support_count))
+            if(support_count < self.min_support_count):
+                #print("support_count < self.min_support_count")
+                #print(str(support_count) + " < " + str(self.min_support_count))
                 item_list.append(item)
         
         #print(item_list)
