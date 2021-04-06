@@ -93,20 +93,6 @@ def parse_genotypes_file(genotypes_infile,phenotypes_infile,maf_threshold):
     # Get the phenotypes dictionary data structure so we can filter the genotypes by phenotype.
     phenotypes_dict = parse_phenotypes_file(phenotypes_infile)
     
-#    # The output directory of the phenotypes file.
-#    output_dir = os.path.dirname(phenotypes_infile)
-    
-    
-#    # Get the output file name of the phenotypes file.
-#    phenotypes_outfile = os.path.join(output_dir, "phenotypes.tsv")
-#
-#    # Writing the phenotypes to a TSV file for input into the RAINBOWR R program for SNP association tests.
-#    tsvfile = open(phenotypes_outfile, 'w')
-#    tsvwriter = csv.writer(tsvfile, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
-#
-#    # Write the header for the phenotypes TSV file.
-#    tsvwriter.writerow(['genotype_id', 'phenotype'])
-#
     # Counter for header and data entry.
     row_counter = 0
 
@@ -291,10 +277,7 @@ def parse_genotypes_file(genotypes_infile,phenotypes_infile,maf_threshold):
                         #sys.exit()
                     
             row_counter = row_counter + 1
-
-
    
-    #tsvfile.close()
     return(genotypes_dict,phenotypes_dict)
  
 '''
@@ -345,8 +328,6 @@ def generate_files_for_plink(phenotype_dict, genotypes_dict, maf_threshold, outp
     ## Write the header for the genotype counts TSV file.
     ##tsvwriter2.writerow(['marker_id', 'chromosome_id', 'position_id'])
 
-
-                
     # Individual genotypes dictionary for storing the genotypes of each individual for the PED formatted file for PLINK.
     individual_genotypes = {}
     
@@ -457,6 +438,8 @@ def run_emmax_association_tests(genotype_ped_file, genotype_map_file, emmax_outp
     bn_kinf_matrix = ".".join([out_prefix, "BN.kinf"])
     
     os.system(("{emmax} -v -d 10 -t {out_prefix} -p {emmax_phenotypes_infile} -k {bn_kinf_matrix} -o {emmax_outfile_prefix}").format(emmax=emmax,out_prefix=out_prefix,emmax_phenotypes_infile=emmax_phenotypes_infile,bn_kinf_matrix=bn_kinf_matrix,emmax_outfile_prefix=emmax_outfile_prefix))
+
+
 
 def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenotypes_dict,alpha_value, parsed_genotypes_output_dir):
 
@@ -612,10 +595,10 @@ def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenot
     for part_num in apriori_genotype_files_dict:
         print(str(part_num))
         
-        encoded_genotypes_outfile = os.path.join(apriori_genotype_pattern_output_dir, "apriori_genotypes_part" + str(part_num) + ".tsv")
+        apriori_genotypes_outfile = os.path.join(apriori_genotype_pattern_output_dir, "apriori_genotypes_part" + str(part_num) + ".tsv")
 
         # Writing the transaction genotypes database to a TSV file.
-        tsvfile2 = open(encoded_genotypes_outfile, 'w')
+        tsvfile2 = open(apriori_genotypes_outfile, 'w')
         tsvwriter2 = csv.writer(tsvfile2, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
 
         # Write the header for the transaction genotypes database TSV file.
@@ -625,107 +608,26 @@ def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenot
             tsvwriter2.writerow([str(genotype_id), transaction_values])
         #sys.exit()
         tsvfile2.close()
-            
-
-def generate_genotypes_summary_file(genotypes_dict,genotypes_counts_outfile):
-
-    # Writing the genotype counts to a TSV file for input into the snp-hwe.r program for snp exact tests.
-    tsvfile = open(genotypes_counts_outfile, 'w')
-    tsvwriter = csv.writer(tsvfile, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
-
-    # Write the header for the genotype counts TSV file.
-    tsvwriter.writerow(['MARKER_ID', 'p', 'q', 'HET', 'HOM1', 'HOM2'])
-    #tsvwriter.writerow(['MARKER_ID', 'HET', 'HOM1', 'HOM2'])
-
-    # Make HWE-SNP formatted file.
-    for chromosome_id in genotypes_dict:
-        for position_id in genotypes_dict[chromosome_id]:
-            
-            # Get the genotype_metadata dictionary.
-            genotype_metadata = genotypes_dict[chromosome_id][position_id]["genotype_metadata"]
-            
-            # Get the minor allele count for this locus.
-            minor_allele_count = genotype_metadata["minor_allele_count"]
-            
-            # Get minor allele base nucleotide character for this locus.
-            minor_allele_base = genotype_metadata["minor_allele_base"]
-                    
-            # Get the major allele count for this locus.
-            major_allele_count = genotype_metadata["major_allele_count"]
-            
-            # Get the major allele base nucleotide character for this locus.
-            major_allele_base = genotype_metadata["major_allele_base"]
         
-            # Get the total number of alleles for this locus.
-            total_num_alleles = genotype_metadata["total_num_alleles"]
-                    
-            # Calculate the minor allele frequency.
-            minor_allele_frequency = float(minor_allele_count) / float(total_num_alleles)
+    # Get the output file name of the phenotypes file.
+    phenotypes_outfile = os.path.join(parsed_genotypes_output_dir, "phenotypes.tsv")
 
-            # Calculate the major allele frequency.
-            major_allele_frequency = float(major_allele_count) / float(total_num_alleles)
+    # Writing the phenotypes to a TSV file for input into the machine learning models.
+    tsvfile3 = open(phenotypes_outfile, 'w')
+    tsvwriter3 = csv.writer(tsvfile3, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
 
-            #print(minor_allele_frequency)
-            #print(major_allele_frequency)
+    # Write the header for the phenotypes TSV file.
+    tsvwriter3.writerow(['genotype_id', 'phenotype'])
+
+    # Iterate over the genotype_ids list so that we can write the contents to a file.
+    for genotype_id in genotype_ids:
+        phenotype = phenotypes_dict[str(genotype_id)]
+        tsvwriter3.writerow([genotype_id, phenotype])
+        
+    # Close the phenotype file.
+    tsvfile3.close()
             
-            ## Calculate the Hardy Weinberg Equilibrium (HWE) equation.
-            
-            # The major allele frequency p.
-            p = major_allele_frequency
-            
-            # The minor allele frequency q.
-            q = minor_allele_frequency
 
-            # Test to check that the major allele frequency p and minor allele frequency when added together equal 1. (p + q = 1)
-            if((p + q) == 1):
-                #print("pass")
-                #print(p + q)
-            
-#                # The AA homozygote 1 genotype frequency (p ** 2).
-#                homozygote_1_freq = (p ** 2)
-#
-#                # The aa homozygote 2 genotype frequency (q ** 2).
-#                homozygote_2_freq = (q ** 2)
-#
-#                # The Aa heterozygote fequency (2pq).
-#                heterozygote_freq = 2 * (p * q)
-
-                #print(homozygote_1_freq + homozygote_2_freq + heterozygote_freq)
-                
-                #print(homozygote_1_freq, homozygote_2_freq, heterozygote_freq)
-                
-                #print(homozygote_1_freq * total_num_alleles, homozygote_2_freq * total_num_alleles, heterozygote_freq * total_num_alleles)
-                
-                # Generate a marker id for this locus.
-                marker_id = '_'.join([':'.join(['chromosome',chromosome_id]), ':'.join(['position',position_id])])
-                
-#                # The AA homozygote 1 genotype count.
-#                homozygote_1_count = homozygote_1_freq * total_num_alleles
-#
-#                # The aa homozygote 2 genotype count.
-#                homozygote_2_count = homozygote_2_freq * total_num_alleles
-#
-#                # The Aa heterozygote count.
-#                heterozygote_count = heterozygote_freq * total_num_alleles
-                # The AA homozygote 1 genotype count.
-                homozygote_1_count = minor_allele_frequency * total_num_alleles
-
-                # The aa homozygote 2 genotype count.
-                homozygote_2_count = major_allele_frequency * total_num_alleles
-
-                # The Aa heterozygote count.
-                heterozygote_count = 0 * total_num_alleles
-                
-                # Write the genotype counts entry.
-                #'MARKER_ID', 'p','q','HET', 'HOM1', 'HOM2'
-                tsvwriter.writerow([marker_id,p,q,heterozygote_count,homozygote_1_count,homozygote_2_count])
-                #tsvwriter.writerow([marker_id,heterozygote_count,homozygote_1_count,homozygote_2_count])
-                
-            else:
-                print("p + q ", str(p + q), " not equal to 1.")
-                sys.exit()
-    tsvfile.close()
-    
 '''
 Function format_and_filter_SNPHWE_tests(snp_hwe_results_outfile):
 
@@ -741,7 +643,7 @@ snp_hwe_results_infile -
 maf_threshold - The Minor Allele Frequency threshold for filting SNP variants. MAF values greater than or equal to this value with be retained and MAF values less than this value will be filtered out of the dataset. The default for MAF is 0.05 or 5%. Default: 0.05
 
 alpha_value - The alpha value threshold for filtering SNP variants. If the P-value for the SNPHWE tests are greater than or equal to the alpha value it is retained and if the P-value is less than the alpha value will be filtered out of the dataset. The default for alpha is 0.001 or 10^-3. Default: 0.001
-.
+
 Output:
 
 Returns before filtering file and after filtering file for
@@ -761,37 +663,6 @@ output_dir -
 
 '''
 #def generate_qqmat_plots():
-
-'''
-Function format_and_filter_genotypes(, )
-
-Filters genotypes using the minor allele frequency (MAF) and HWE-SNP P-Value.
-
-genotypes_counts_outfile -
-
-genotypes_dict -
-  
-'''
-#def format_and_filter_genotypes():
-
-
-'''
-Function encode_genotypes(genotypes_dict):
-
-Depreciated
-Encodes the major allele with 0 and the minor allele with 1.
-
-Input:
-
-genotypes_dict -
-
-output_dir -
-
-'''
-#def encode_genotypes(genotypes_dict):
-
-
-
 
 
 #gunzip -c gene_model.gff.gz > gene_model.gff
