@@ -550,17 +550,17 @@ class Apriori:
                 
                     # We only want powerset sets that are of length 1 to less than the size of itemset
                     if(len(set) > 0 and len(set) < len(itemA_list)):
-                        set_list = []
+                        set_list_itemB = []
                         for item in set:
                             #print(item)
-                            set_list.append(item)
-                        #print(set_list)
+                            set_list_itemB.append(item)
+                        #print(set_list_itemB)
                         
                         # Join the list into a string representation of itemB.
-                        itemB = ",".join(set_list)
+                        itemB = ",".join(set_list_itemB)
                         
                         # The frequent k-itemsets containing itemB.
-                        frequent_k_itemsets_B = self.frequent_itemsets[str(len(set_list))]
+                        frequent_k_itemsets_B = self.frequent_itemsets[str(len(set_list_itemB))]
                         
                         # The itemset support count variable containing support counts for itemB.
                         itemset_support_count_B = frequent_k_itemsets_B["itemset_support_count"]
@@ -584,11 +584,18 @@ class Apriori:
                         # confidence = support(itemA U itemB)/support(itemB)
                         confidence = self.confidence(itemA_support, itemB_support)
                         
-                        # Getting subset for print out of confidence caluclations.
-                        subset_list = []
-                        for element in itemA_list:
-                            if(not(element == itemB)):
-                                subset_list.append(element)
+#                        print("set_list_itemB")
+#                        print(set_list_itemB)
+#                        print(type(set_list_itemB))
+#                        print(type(itemA_list))
+                        # Getting difference of itemA_list and set_list_itemB to obtain a subset of the two for print out of confidence caluclations.
+                        subset_list = [i for i in itemA_list + set_list_itemB if i not in itemA_list or i not in set_list_itemB]
+#                        print(li_dif)
+#                        sys.exit()
+#                        subset_list = []
+#                        for element in itemA_list:
+#                            if(not(element == itemB)):
+#                                subset_list.append(element)
                         
                         
                         # Join the list into a string representation of the subset.
@@ -631,6 +638,7 @@ class Apriori:
         tsvfile.close()
 
 
+#### MAIN FUNCTION FOR TESTING ####
 
 output_dir = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_2/test_datasets/association_rules"
 
