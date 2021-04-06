@@ -9,18 +9,26 @@
 #SBATCH --output=apriori_algorithm_job_array.%A_%a.out
 #SBATCH --error=apriori_algorithm_job_array.%A_%a.err
 
+# The start time to print out.
+start_time=$(date)
+echo "started at: ${start_time}"
+
 # The list of apriori_genotype_pattern_files 
 list="${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genotype_pattern_file_list.txt"
 
-output_dir="${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset"
+# The output directory.
+output_dir="${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genomic_dataset_output"
 mkdir -p $output_dir
-
 
 IFS=$'\n' array=($(<$list))
 
 # The apriori_genotype_pattern_file.
 apriori_genotype_pattern_file=${array[$SLURM_ARRAY_TASK_ID-1]}
 
-python3 "${HOME}/MDSC_679/ML_Project_2/execute_apriori.py" --input_file $apriori_genotype_pattern_file --min_support_count 2 --min_confidence 0.60 --output_dir  $output_dir
+# Run the execute_apriori.py command using time to capture run time usage.
+time python3 "${HOME}/MDSC_679/ML_Project_2/execute_apriori.py" --input_file $apriori_genotype_pattern_file --min_support_count 2 --min_confidence 0.60 --output_dir  $output_dir
 
+# The end time to print out.
+end_time=$(date)
+echo "finished with exit code $? at: ${end_time}"
 
