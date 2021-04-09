@@ -307,7 +307,7 @@ def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_t
         os.makedirs(association_mapping_output_dir)
         
     # The plink genotypes ped output file.
-    plink_genotype_ped_outfile = os.path.join(association_mapping_output_dir, "genotype.ped.txt")
+    plink_genotype_ped_outfile = os.path.join(association_mapping_output_dir, "plink.genotype.ped.txt")
 
     #print(plink_genotype_ped_outfile)
 
