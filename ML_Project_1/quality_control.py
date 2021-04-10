@@ -465,23 +465,31 @@ snp_hwe_results_outfile - The SNPHWE marker tests output file.
 
 
 '''
-def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infile, mvp_genotype_map_infile, mvp_phenotype_infile, output_dir):
+def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infile, mvp_genotype_map_infile, mvp_phenotype_infile, association_mapping_output_dir):
 
-
-    out_prefix = os.path.join(os.path.dirname(plink_genotype_ped_infile), "genotype")
+    # The output file prefix for plink command.
+    out_prefix = os.path.join(os.path.dirname(plink_genotype_ped_infile), "mvp.genotype")
     
-#    os.system("bash -c 'source /Users/kevin.muirhead/.bash_profile'")
-#    os.system("bash -c 'source activate plink_env'")
-#    
+    # Execute the plink command and recode for the VCF file format and PCA output files.
     # plink --ped plink.genotype.ped.txt --map plink.genotype.map.txt --pca --recode vcf  --allow-no-sex --out mvp.genotype
     os.system(("plink --ped {plink_genotype_ped_infile} --map {plink_genotype_map_infile} --pca --recode vcf  --allow-no-sex --out {out_prefix}").format(plink_genotype_ped_infile=plink_genotype_ped_infile,plink_genotype_map_infile=plink_genotype_map_infile, out_prefix=out_prefix))
-
-    genotypes_vcf_file = "".join([out_prefix, ".vcf"])
-
-    mvp_outfile_prefix = os.path.join(association_mapping_output_dir, "mvp")
-
-   
-#    os.system(("").format())
+    
+    # The original VCF file.
+    mvp_genotypes_vcf_file = "".join([out_prefix, ".vcf"])
+    
+    # The fixed VCF file.
+    mvp_fixed_genotypes_vcf_file = "".join([out_prefix, ".fixed.vcf"])
+    
+    # Have to remove the "Family_ID_" code from the vcf file generated from plink as it interferes with the rMVP script.
+    os.system("sed 's/Family_ID_//g' < {mvp_genotypes_vcf_file} > {mvp_fixed_genotypes_vcf_file}".format(mvp_genotypes_vcf_file=mvp_genotypes_vcf_file, mvp_fixed_genotypes_vcf_file=mvp_fixed_genotypes_vcf_file))
+    
+    
+    # Rscript rMVP_marker_tests.R -i ~/Desktop/GWAS_output_dir2/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.fixed.vcf -p ~/Desktop/GWAS_output_dir2/FILES_FOR_ASSOCIATION_MAPPING/mvp.phenotype.txt -o ~/Desktop/GWAS_output_dir2/ASSOCIATION_MAPPING_OUTPUT_DIR
+    os.system(("Rscript rMVP_marker_tests.R -i {mvp_fixed_genotypes_vcf_file} -p {mvp_phenotype_infile} -o {association_mapping_output_dir}").format(mvp_fixed_genotypes_vcf_file=mvp_fixed_genotypes_vcf_file, mvp_phenotype_infile=mvp_phenotype_infile, association_mapping_output_dir=association_mapping_output_dir))
+    
+    
+    #return()
+    
 
 '''
 Function run_SNPHWE_marker_tests(genotypes_counts_infile, output_dir)
@@ -770,7 +778,7 @@ phenotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Proje
 genotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/genotype.csv"
 #genotypes_infile = "/home/kevin.muirhead/genotype.csv"
 
-output_dir = "/Users/kevin.muirhead/Desktop/GWAS_output_dir1"
+output_dir = "/Users/kevin.muirhead/Desktop/GWAS_output_dir2"
 #output_dir = "/home/kevin.muirhead/GWAS_output_dir"
 
 
@@ -778,7 +786,7 @@ output_dir = "/Users/kevin.muirhead/Desktop/GWAS_output_dir1"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
    
-# Get the genotypes dictionary data structure so we can iterate through the genotypes.
+# Get the phenotypes and genotypes dictionary data structures for quick look up by genotype id.
 (genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile, maf_threshold)
 
 
@@ -791,7 +799,7 @@ association_mapping_output_dir = os.path.join(output_dir, "ASSOCIATION_MAPPING_O
 if not os.path.exists(association_mapping_output_dir):
     os.makedirs(association_mapping_output_dir)
  
-run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_genotype_map_outfile, mvp_phenotype_outfile, output_dir)
+run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_genotype_map_outfile, mvp_phenotype_outfile, association_mapping_output_dir)
 
 #run_emmax_association_tests(genotype_ped_outfile, genotype_map_outfile, association_mapping_output_dir)
 

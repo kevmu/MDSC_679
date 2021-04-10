@@ -1,37 +1,78 @@
-library(rMVP)
+
+# The library list of R package dependences.
+library('getopt');
+library('rMVP')
+
+# The R program usage example.
+# Rscript rMVP_marker_tests.R -i emmax.ps -o emmax_adjusted_pvalues.txt
+
+# Get options, using the spec as defined by the enclosed list.
+# We read the options from the default: commandArgs(TRUE).
+spec = matrix(c(
+    'vcf_infile','i', 1, "character",
+    'phenotype_infile','p', 1, "character",
+    'association_mapping_output_dir','o', 1, "character",
+    'help','h', 0, "logical"
+), byrow=TRUE, ncol=4);
+opt = getopt(spec);
+
+# if help was asked for print a friendly message
+# and exit with a non-zero error code
+if(!is.null(opt$help)){
+    cat(getopt(spec, usage=TRUE));
+    q(status=1);
+}
+
+# if no parameter was given for any of these print
+# a friendly message and exit with a non-zero error
+# code
+if(is.null(opt$vcf_infile)){
+    cat(getopt(spec, usage=FALSE));
+    q(status=1);
+}
+if(is.null(opt$phenotype_infile)){
+    cat(getopt(spec, usage=FALSE));
+    q(status=1);
+}
+if(is.null(opt$association_mapping_output_dir)){
+    cat(getopt(spec, usage=FALSE));
+    q(status=1);
+}
+
+## Initialize directory and file name variables.
+
+# The VCF input file parameter variable vcf_infile.
+vcf_infile = opt$vcf_infile;
+
+# The phenotype input file parameter variable phenotype_infile.
+phenotype_infile = opt$phenotype_infile;
+
+# The output directory parameter variable association_mapping_output_dir.
+association_mapping_output_dir = opt$association_mapping_output_dir;
+
+out_prefix=paste(association_mapping_output_dir,"mvp.genotype.vcf", sep="/")
 
 
+# Generate the mvp data files for input into the MVP function.
 MVP.Data(
-   # #fileNum="/Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/demo_data/numeric.txt",
 
-   # #filePhe="/Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/demo_data/mdp_traits_validation.txt",
-   # #fileMap="/Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/demo_data/mdp_SNP_information.txt",
-    fileVCF="/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/rMVP.genotype.vcf",
-   # fileMap="/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/rMVP.genotype.map.txt",
-    filePhe="/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/rMVP.phenotype.txt",
+    fileVCF=vcf_infile,
+    filePhe=phenotype_infile,
 
-             sep.map="\t",
-            sep.phe="\t",
-            fileKin=FALSE,
-            filePC=FALSE,
-#            auto_transpose=TRUE,
-    ##         #priority="memory",
-      ##       #maxLine=10000,
-             out="/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.vcf"
+    sep.map="\t",
+    sep.phe="\t",
+    fileKin=FALSE,
+    filePC=FALSE,
+    out=out_prefix
 )
-#fileVCF="/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/rMVP.genotype.vcf"
-#MVP.Data.VCF2MVP(fileVCF, out = "/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/mvp")
 
-#filePhe="/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.vcf.phe"
-#MVP.Data.Pheno(filePhe, out = "/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/mvp", cols = NULL, header = TRUE, sep = "\t", missing = c(NA, "NA", "-9", 9999), verbose = TRUE)
+#genotype <- attach.big.matrix("/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.vcf.geno.desc")
+#phenotype <- read.table("/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.vcf.phe",head=TRUE)
+#map <- read.table("/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.vcf.geno.map" , head = TRUE)
 
-#fileMap="/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.vcf.geno.map"
-#MVP.Data.Map(fileMap, out = "/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/mvp", header = TRUE, sep = "\t", verbose = TRUE)
-
-#print("test")
-genotype <- attach.big.matrix("/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.vcf.geno.desc")
-phenotype <- read.table("/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.vcf.phe",head=TRUE)
-map <- read.table("/Users/kevin.muirhead/Desktop/GWAS_output_dir1/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.vcf.geno.map" , head = TRUE)
+genotype <- attach.big.matrix(paste(association_mapping_output_dir,"mvp.genotype.vcf.geno.desc", sep="/"))
+phenotype <- read.table(paste(association_mapping_output_dir,"mvp.genotype.vcf.phe", sep="/"),head=TRUE)
+map <- read.table(paste(association_mapping_output_dir,"mvp.genotype.vcf.geno.map", sep="/"), head = TRUE)
 
 imMVP <- MVP(
     phe=phenotype,
@@ -55,7 +96,8 @@ imMVP <- MVP(
 
     file.output=TRUE,
 
-    outpath="/Users/kevin.muirhead/Desktop/GWAS_output_dir1/ASSOCIATION_MAPPING_OUTPUT_DIR/"
+#    outpath="/Users/kevin.muirhead/Desktop/GWAS_output_dir1/ASSOCIATION_MAPPING_OUTPUT_DIR/"
+    outpath=association_mapping_output_dir
 
 )
 
