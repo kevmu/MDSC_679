@@ -3,6 +3,8 @@
 import csv
 import sys
 import os
+import subprocess
+
 
 # Load the Pandas libraries with alias 'pd'
 #import pandas as pd
@@ -11,9 +13,6 @@ import os
 python_path = sys.argv[0]
 app_dir = os.path.dirname(os.path.realpath(python_path))
 sys.path.append(os.path.abspath(app_dir))
-
-emmax_kin = "/home/kevin.muirhead/emmax-beta-07Mar2010/emmax-kin"
-emmax = "/home/kevin.muirhead/emmax-beta-07Mar2010/emmax"
 
 #print(python_path)
 #print(app_dir)
@@ -328,26 +327,26 @@ def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_t
     tsvfile2 = open(plink_genotype_map_outfile, 'w')
     tsvwriter2 = csv.writer(tsvfile2, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
 
-    # The rMVP genotypes map output file.
-    rMVP_genotype_map_outfile = os.path.join(association_mapping_output_dir, "rMVP.genotype.map.txt")
-    print(rMVP_genotype_map_outfile)
+    # The mvp genotypes map output file.
+    mvp_genotype_map_outfile = os.path.join(association_mapping_output_dir, "mvp.genotype.map.txt")
+    print(mvp_genotype_map_outfile)
     
-    # Writing the genotype map to a TSV file for input into the rMVP program.
-    tsvfile3 = open(rMVP_genotype_map_outfile, 'w')
+    # Writing the genotype map to a TSV file for input into the mvp program.
+    tsvfile3 = open(mvp_genotype_map_outfile, 'w')
     tsvwriter3 = csv.writer(tsvfile3, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
 
-    ## Write the header for the rMVP genotype map TSV file.
+    ## Write the header for the mvp genotype map TSV file.
     tsvwriter3.writerow(['marker_id', 'chromosome_id', 'position_id'])
 
-    # The rMVP phenotype output file.
-    rMVP_phenotype_outfile = os.path.join(association_mapping_output_dir, "rMVP.phenotype.txt")
-    print(rMVP_phenotype_outfile)
+    # The mvp phenotype output file.
+    mvp_phenotype_outfile = os.path.join(association_mapping_output_dir, "mvp.phenotype.txt")
+    print(mvp_phenotype_outfile)
     
-    # Writing the rMVP phenotype to a TSV file for input into the rMVP program.
-    tsvfile4 = open(rMVP_phenotype_outfile, 'w')
+    # Writing the mvp phenotype to a TSV file for input into the mvp program.
+    tsvfile4 = open(mvp_phenotype_outfile, 'w')
     tsvwriter4 = csv.writer(tsvfile4, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
 
-    ## Write the header for the rMVP phenotype TSV file.
+    ## Write the header for the mvp phenotype TSV file.
     tsvwriter4.writerow(['genotype_id', 'phenotype'])
 
     # Individual genotypes dictionary for storing the genotypes of each individual for the PED formatted file for PLINK.
@@ -374,7 +373,7 @@ def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_t
                 allele_base = genotype_list[str(genotype_id)]
                 genotype = allele_base
                 
-                # For numeric format for input into rMVP.
+                # For numeric format for input into mvp.
                 # Initialize the genotype to a missing value by default.
                 # Genotypes should be either 0, 1, or 2 for homozygote 1, heterozygote, and homozygote 2 genotypes.
 #                encoded_genotype = "-9"
@@ -410,7 +409,7 @@ def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_t
             tsvwriter2.writerow([chromosome_id, marker_id, position_id])
             
                         
-            # rMVP MAP File format.
+            # mvp MAP File format.
             # rs# or snp identifier
             # chromosome (1-22, X, Y or 0 if unplaced)
             # Base-pair position (bp units)
@@ -442,15 +441,47 @@ def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_t
     # Close the PLINK MAP format file.
     tsvfile2.close()
     
-    # Close the rMVP map format file.
+    # Close the mvp map format file.
     tsvfile3.close()
     
     # Close the phenotypes file.
     tsvfile4.close()
     
-    return (plink_genotype_ped_outfile, plink_genotype_map_outfile, rMVP_genotype_map_outfile, rMVP_phenotype_outfile)
+    return (plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_genotype_map_outfile, mvp_phenotype_outfile)
 
 
+
+
+'''
+Function run_SNPHWE_marker_tests(genotypes_counts_infile, output_dir)
+
+Wrapper function for the snp_hwe_marker_tests.r script adapted from the http://csg.sph.umich.edu/abecasis/Exact/r_instruct.html website that  implements a fast exact Hardy-Weinberg Equilibrium test for SNPs as described in Wigginton, et al. (2005). The script makes use of the snp_hwe.r source file (http://csg.sph.umich.edu/abecasis/Exact/snp_hwe.r).
+
+Input:
+
+genotypes_counts_infile - The genotype counts TSV file obtained from the generate_genotypes_counts_file function.
+
+snp_hwe_results_outfile - The SNPHWE marker tests output file.
+
+
+'''
+def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infile, mvp_genotype_map_infile, mvp_phenotype_infile, output_dir):
+
+
+    out_prefix = os.path.join(os.path.dirname(plink_genotype_ped_infile), "genotype")
+    
+#    os.system("bash -c 'source /Users/kevin.muirhead/.bash_profile'")
+#    os.system("bash -c 'source activate plink_env'")
+#    
+    # plink --ped plink.genotype.ped.txt --map plink.genotype.map.txt --pca --recode vcf  --allow-no-sex --out mvp.genotype
+    os.system(("plink --ped {plink_genotype_ped_infile} --map {plink_genotype_map_infile} --pca --recode vcf  --allow-no-sex --out {out_prefix}").format(plink_genotype_ped_infile=plink_genotype_ped_infile,plink_genotype_map_infile=plink_genotype_map_infile, out_prefix=out_prefix))
+
+    genotypes_vcf_file = "".join([out_prefix, ".vcf"])
+
+    mvp_outfile_prefix = os.path.join(association_mapping_output_dir, "mvp")
+
+   
+#    os.system(("").format())
 
 '''
 Function run_SNPHWE_marker_tests(genotypes_counts_infile, output_dir)
@@ -467,42 +498,6 @@ snp_hwe_results_outfile - The SNPHWE marker tests output file.
 '''
 def run_emmax_association_tests(genotype_ped_file, genotype_map_file, association_mapping_output_dir):
 
-    out_prefix = os.path.join(os.path.dirname(genotype_ped_file), "genotypes")
-    #os.system("source ~/.bash_profile")
-    #os.system("conda activate plink_env")
-    # plink --ped ../genotypes.ped --map ../genotypes.map --recode12 --output-missing-genotype 0 --transpose --allow-no-sex --out ../genotypes
-    os.system(("plink --ped {genotype_ped_file} --map {genotype_map_file} --recode12 --output-missing-genotype 0 --transpose --allow-no-sex --out {out_prefix}").format(genotype_ped_file=genotype_ped_file,genotype_map_file=genotype_map_file, out_prefix=out_prefix))
-    
-    genotypes_tfam_file = "".join([out_prefix, ".tfam"])
-    emmax_phenotypes_infile = os.path.join(association_mapping_output_dir, "emmax_phenotypes.txt")
-
-    emmax_outfile_prefix = os.path.join(association_mapping_output_dir, "emmax")
-
-    os.system(("{emmax_kin} -v -d 10 {out_prefix}").format(emmax_kin=emmax_kin,out_prefix=out_prefix))
-    
-    os.system(("awk -F' ' '{{print $1,$2,$6}}' < {genotypes_tfam_file} > {emmax_phenotypes_infile}").format(genotypes_tfam_file=genotypes_tfam_file,emmax_phenotypes_infile=emmax_phenotypes_infile))
-    
-    bn_kinf_matrix = ".".join([out_prefix, "BN.kinf"])
-    
-    os.system(("{emmax} -v -d 10 -t {out_prefix} -p {emmax_phenotypes_infile} -k {bn_kinf_matrix} -o {emmax_outfile_prefix}").format(emmax=emmax,out_prefix=out_prefix,emmax_phenotypes_infile=emmax_phenotypes_infile,bn_kinf_matrix=bn_kinf_matrix,emmax_outfile_prefix=emmax_outfile_prefix))
-
-'''
-Function run_SNPHWE_marker_tests(genotypes_counts_infile, output_dir)
-
-Wrapper function for the snp_hwe_marker_tests.r script adapted from the http://csg.sph.umich.edu/abecasis/Exact/r_instruct.html website that  implements a fast exact Hardy-Weinberg Equilibrium test for SNPs as described in Wigginton, et al. (2005). The script makes use of the snp_hwe.r source file (http://csg.sph.umich.edu/abecasis/Exact/snp_hwe.r).
-
-Input:
-
-genotypes_counts_infile - The genotype counts TSV file obtained from the generate_genotypes_counts_file function.
-
-snp_hwe_results_outfile - The SNPHWE marker tests output file.
-
-
-'''
-def run_rMVP_association_tests(genotype_ped_file, genotype_map_file, rMVP_output_dir):
-
-
-    print("test")
     out_prefix = os.path.join(os.path.dirname(genotype_ped_file), "genotypes")
     #os.system("source ~/.bash_profile")
     #os.system("conda activate plink_env")
@@ -778,6 +773,7 @@ genotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Projec
 output_dir = "/Users/kevin.muirhead/Desktop/GWAS_output_dir1"
 #output_dir = "/home/kevin.muirhead/GWAS_output_dir"
 
+
 # Create the output directory if it does not exist.
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
@@ -786,7 +782,7 @@ if not os.path.exists(output_dir):
 (genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile, maf_threshold)
 
 
-(plink_genotype_ped_outfile, plink_genotype_map_outfile, rMVP_genotype_map_outfile, rMVP_phenotype_outfile) = generate_files_for_association_mapping(phenotypes_dict, genotypes_dict, maf_threshold, output_dir)
+(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_genotype_map_outfile, mvp_phenotype_outfile) = generate_files_for_association_mapping(phenotypes_dict, genotypes_dict, maf_threshold, output_dir)
 
 # The emmax output directory.
 association_mapping_output_dir = os.path.join(output_dir, "ASSOCIATION_MAPPING_OUTPUT_DIR")
@@ -794,18 +790,20 @@ association_mapping_output_dir = os.path.join(output_dir, "ASSOCIATION_MAPPING_O
 # Create the emmax output directory if it does not exist.
 if not os.path.exists(association_mapping_output_dir):
     os.makedirs(association_mapping_output_dir)
-    
+ 
+run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_genotype_map_outfile, mvp_phenotype_outfile, output_dir)
+
 #run_emmax_association_tests(genotype_ped_outfile, genotype_map_outfile, association_mapping_output_dir)
 
-adjusted_pvalues_infile = "/Users/kevin.muirhead/Desktop/GWAS_output_dir/ASSOCIATION_MAPPING_OUTPUT_DIR/emmax_adjusted_pvalues.txt"
+#adjusted_pvalues_infile = "/Users/kevin.muirhead/Desktop/GWAS_output_dir/ASSOCIATION_MAPPING_OUTPUT_DIR/emmax_adjusted_pvalues.txt"
 #adjusted_pvalues_infile = "/home/kevin.muirhead/GWAS_output_dir/ASSOCIATION_MAPPING_OUTPUT_DIR/emmax_adjusted_pvalues.tsv"
 
 # The parsed_genotypes_output_dir output directory.
-parsed_genotypes_output_dir = os.path.join(output_dir, "PARSED_GENOTYPES_OUTPUT_DIR")
+#parsed_genotypes_output_dir = os.path.join(output_dir, "PARSED_GENOTYPES_OUTPUT_DIR")
 
 # Create the emmax output directory if it does not exist.
-if not os.path.exists(parsed_genotypes_output_dir):
-    os.makedirs(parsed_genotypes_output_dir)
+#if not os.path.exists(parsed_genotypes_output_dir):
+#    os.makedirs(parsed_genotypes_output_dir)
     
 #parse_multiple_corrected_tests(adjusted_pvalues_infile, genotypes_dict, phenotypes_dict, alpha_value, parsed_genotypes_output_dir)
 
