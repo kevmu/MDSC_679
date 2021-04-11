@@ -583,7 +583,7 @@ Input:
 
 Output:
 
-    adjusted_pvalues_infile - The adjusted pvalues output file.
+    adjusted_pvalues_outfile - The adjusted pvalues output file.
 
 '''
 def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infile, mvp_phenotype_infile, association_mapping_output_dir):
@@ -608,17 +608,23 @@ def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infi
     # Rscript rMVP_marker_tests.R -i ~/Desktop/GWAS_output_dir2/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.fixed.vcf -p ~/Desktop/GWAS_output_dir2/FILES_FOR_ASSOCIATION_MAPPING/mvp.phenotype.txt -o ~/Desktop/GWAS_output_dir2/ASSOCIATION_MAPPING_OUTPUT_DIR
     os.system(("Rscript rMVP_marker_tests.R -i {mvp_fixed_genotypes_vcf_file} -p {mvp_phenotype_infile} -o {association_mapping_output_dir}").format(mvp_fixed_genotypes_vcf_file=mvp_fixed_genotypes_vcf_file, mvp_phenotype_infile=mvp_phenotype_infile, association_mapping_output_dir=association_mapping_output_dir))
     
+    # The mvp phenotype association test results Mixed Linear Model (MLM) file.
+    mvp_phenotype_association_file = os.path.join(association_mapping_output_dir, "phenotype.MLM.csv")
     
-    #adjusted_pvalues_infile
-    #return(adjusted_pvalues_infile)
+    # The adjusted pvalues output file.
+    adjusted_pvalues_outfile = os.path.join(association_mapping_output_dir, "phenotype.MLM.adjusted.pvalues.csv")
+        
+    # Run the calculate_adjusted_pvalues.R script to calculate the boneferroni correction and qvalue (FDR) adjusted pvalues.
+    os.system("Rscript calculate_adjusted_pvalues.R -i {mvp_phenotype_association_file} -o ".format(mvp_phenotype_association_file=mvp_phenotype_association_file, adjusted_pvalues_outfile=adjusted_pvalues_outfile))
     
+    return(adjusted_pvalues_outfile)
 
-
+    
 '''
 
 Function parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenotypes_dict,alpha_value, parsed_genotypes_output_dir)
 
-Parses the genotypes from the multiple corrected tests for adjusted pvalues using the alpha value as the cut-off. Retains qvalues <= 0.05 alpha_value for a 5% False discovery Rate (FDR).
+Parses the genotypes from the multiple corrected tests for adjusted pvalues using the alpha value as the cut-off. Retains qvalues <= 0.05 alpha_value for a 5% False discovery Rate (FDR). Outputs the encoded genotypes and the apriori transaction genotypes database files.
 
 Input:
 
@@ -856,27 +862,13 @@ if not os.path.exists(association_mapping_output_dir):
  
 run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile, association_mapping_output_dir)
 
-#adjusted_pvalues_infile = "/Users/kevin.muirhead/Desktop/GWAS_output_dir/ASSOCIATION_MAPPING_OUTPUT_DIR/emmax_adjusted_pvalues.txt"
-
 # The parsed_genotypes_output_dir output directory.
 parsed_genotypes_output_dir = os.path.join(output_dir, "PARSED_GENOTYPES_OUTPUT_DIR")
 
 # Create the emmax output directory if it does not exist.
-#if not os.path.exists(parsed_genotypes_output_dir):
-#    os.makedirs(parsed_genotypes_output_dir)
+if not os.path.exists(parsed_genotypes_output_dir):
+    os.makedirs(parsed_genotypes_output_dir)
     
-#parse_multiple_corrected_tests(adjusted_pvalues_infile, genotypes_dict, phenotypes_dict, alpha_value, parsed_genotypes_output_dir)
+# Parse the multiple corrected assocation test adjusted pvalues file to obtain the encoded genotypes file and and the apriori transaction genotypes database file.
+parse_multiple_corrected_tests(adjusted_pvalues_infile, genotypes_dict, phenotypes_dict, alpha_value, parsed_genotypes_output_dir)
 
-##### NEED TO INCORPORATE THE ABOVE FUNCTIONS IN THIS FUNCTION THEN AFTER THAT ADD PHENOTYPES TO DICTIONARY.
-#generate_genotypes_counts_file(genotypes_dict,genotypes_counts_outfile)
-
-# Create the snp_hwe_results_output_dir if it does not exist.
-#snp_hwe_results_output_dir = os.path.join(output_dir, "SNPHWE_results")
-#if not os.path.exists(snp_hwe_results_output_dir):
-#    os.makedirs(snp_hwe_results_output_dir)
-#
-# The path to the snp_hwe_results_outfile file.
-#snp_hwe_results_outfile = os.path.join(snp_hwe_results_output_dir, "genotype_count_SNPHWE_tests.tsv")
-#run_SNPHWE_marker_tests(genotypes_counts_outfile, snp_hwe_results_outfile)
-
-#format_and_filter_SNPHWE_tests(snp_hwe_results_outfile, maf_threshold, alpha_value)
