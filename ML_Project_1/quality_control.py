@@ -3,47 +3,159 @@
 import csv
 import sys
 import os
-import subprocess
+import argparse
+
+parser = argparse.ArgumentParser()
+
+phenotype_infile = None
+genotypes_infile = None
+gff_infile = None
+maf_threshold = None
+alpha_value = None
+output_dir = None
+
+parser.add_argument('--phenotypes_infile', action='store', dest='phenotypes_infile',
+                    help='The phenotypes file as input. (i.e. FT10.txt)')
+parser.add_argument('--genotypes_infile', action='store', dest='genotypes_infile',
+                    help='The genotypes file as input. (i.e. genotype.csv.gz)')
+parser.add_argument('--gff_infile', action='store', dest='gff_infile',
+                    help='The gene model annotation GFF format file as input. (i.e. gene_model.gff.gz)')
+parser.add_argument('--maf_threshold', action='store', dest='maf_threshold',
+                    help='The minor allele frequency (MAF) threshold for filtering genotypes. (i.e. Default: 0.01)')
+parser.add_argument('--alpha_value', action='store', dest='alpha_value',
+                    help='The alpha value as input for filtering adjusted pvalues of the rMVP association tests by the False Disovery Rate (FDR) (i.e. Default: 0.05)')
+parser.add_argument('--output_dir', action='store', dest='output_dir',
+                    help='output directory as input. (i.e. $HOME/output_dir)')
+parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 
 
-# Load the Pandas libraries with alias 'pd'
-#import pandas as pd
-#from decimal import Decimal
 
-python_path = sys.argv[0]
-app_dir = os.path.dirname(os.path.realpath(python_path))
-sys.path.append(os.path.abspath(app_dir))
+# Parse parameter options results.
+results = parser.parse_args()
 
-#print(python_path)
-#print(app_dir)
+# Parse the phenotypes input file.
+phenotypes_infile = results.phenotypes_infile
 
-#sys.exit()
+# Parse the genotypes input file.
+genotypes_infile = results.genotypes_infile
 
-### TO DOs
+# Parse the gff annotation input file.
+gff_infile = results.gff_infile
 
-# 1. Make parameter options parser for script.
+# Parse the minor allele frequency (MAF). Make sure that the maf threshold is a float.
+maf_threshold = float(results.maf_threshold)
 
-# 2. Make function to gunzip the .gz files first before processing.
+# Parse the alpha value. Make sure that the alpha value is a float.
+alpha_value = float(results.alpha_value)
 
-# 3. Split each file parser into functions using def. Make this file a quality control class for a main workflow file.
+# Parse the output directory.
+output_dir = results.output_dir
+
+if(phenotypes_infile == None):
+    print('\n')
+    print('error: please use the --phenotypes_infile option to specify the phenotypes file. (i.e. FT10.txt)')
+    print('phenotypes_infile =' + ' ' + str(phenotypes_infile))
+    print('\n')
+    parser.print_help()
+    sys.exit(1)
+if(genotypes_infile == None):
+    print('\n')
+    print('error: please use the --genotypes_infile option to specify the genotype file. (i.e. genotype.csv.gz)')
+    print('genotypes_infile =' + ' ' + str(genotypes_infile))
+    print('\n')
+    parser.print_help()
+    sys.exit(1)
+if(gff_infile == None):
+    print('\n')
+    print('error: please use the --gff_infile option to specify the gene model annotation GFF format file as input. (i.e. gene_model.gff.gz)')
+    print('gff_infile =' + ' ' + str(gff_infile))
+    print('\n')
+    parser.print_help()
+    sys.exit(1)
+if(maf_threshold == None):
+    print('\n')
+    print('error: please use the --maf_threshold option to specify the minor allele frequency (MAF) threshold for filtering genotypes. (i.e. Default: 0.01)')
+    print('maf_threshold =' + ' ' + str(maf_threshold))
+    print('\n')
+    parser.print_help()
+    sys.exit(1)
+if(alpha_value == None):
+    print('\n')
+    print('error: please use the --alpha_value option to specify the alpha value as input for filtering adjusted pvalues of the rMVP association tests by the False Disovery Rate (FDR) ')
+    print('alpha_value =' + ' ' + str(alpha_value))
+    print('\n')
+    parser.print_help()
+    sys.exit(1)
+if(output_dir == None):
+    print('\n')
+    print('error: please use the --output_dir option to specify the output directory as input')
+    print('output_dir =' + ' ' + str(output_dir))
+    print('\n')
+    parser.print_help()
+    sys.exit(1)
+
+# Create the output_dir directory if it does not exist.
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+
+
 '''
 
-return uncompressed_outfile - The uncompressed output file for parsing.
-'''
-def gunzip_input_files(compressed_infile):
+Uncompress the compressed inout file and return the file path of the uncompressed file.
+
+Input:
+
+    compressed_infile - The compressed file for input.
+
+    output_dir - The outpue directory for writting the uncompressed file.
+
+Output:
+
+    uncompressed_outfile - The uncompressed output file for parsing.
     
-    uncompressed_outfile = compressed_infile.replace("\.gz","")
+'''
+def gunzip_input_files(compressed_infile, output_dir):
+    
+    #The basename of the input file.
+    basename = os.path.basename(compressed_infile)
+    
+    # The filename.
+    filename = os.path.splitext(basename)[0]
+    
+    #print(filename)
+    uncompressed_outfile = os.path.join(output_dir, filename)
+   
+    print(uncompressed_outfile)
+      
+    #sys.exit()
     print(compressed_infile)
     print(uncompressed_outfile)
-    sys.exit()
-    
+
     os.system("gunzip -c {compressed_infile} > {uncompressed_outfile}".format(compressed_infile=compressed_infile, uncompressed_outfile=uncompressed_outfile))
+
     return(uncompressed_outfile)
     
 '''
 
+Function parse_phenotypes_file(phenotypes_infile)
+
+Parse the phenotypes file, filter out missing data and return the phenotype dictionary.
+
+Input:
+
+    phenotypes_infile - The phenotypes input file.
+
+Output:
+
+    phenotype_dict - The filtered phenotypes dictionary data structure where keys are genotype_ids and the value is the phenotype.
+
 '''
 def parse_phenotypes_file(phenotypes_infile):
+
+    # If the phenotypes_infile is a compressed file then uncompress the file and return the file path of the uncompressed file.
+    if(".gz" in phenotypes_infile):
+        phenotypes_infile = gunzip_input_files(phenotypes_infile, output_dir)
 
     # Counter for header and entry.
     row_counter = 0
@@ -79,6 +191,8 @@ def parse_phenotypes_file(phenotypes_infile):
                     phenotypes_dict[genotype_id] = flowering_time
                     num_phenotypes = num_phenotypes + 1
             row_counter = row_counter + 1
+            
+    # Close the phenotype input file.
     csvfile.close()
     
     return(phenotypes_dict)
@@ -86,12 +200,35 @@ def parse_phenotypes_file(phenotypes_infile):
 
 '''
 
+Function parse_genotypes_file(genotypes_infile,phenotypes_infile,maf_threshold)
+
+Parse the genotypes file using the phenotypes file, filter using the minor allele frequency (MAF) threshold and output the genotypes and phenotypes dictionary data structures.
+
+Input:
+
+    genotypes_infile - The genotypes input file.
+
+    phenotypes_infile - The phenotypes input file.
+
+    maf_threshold - The Minor Allele Frequency threshold for filtering SNP variants. MAF values greater than or equal to this value will be retained and MAF values less than this value will be filtered out of the dataset.
+
+Output:
+
+    phenotype_dict - The filtered phenotypes dictionary data structure where keys are genotype_ids and the value is the phenotype.
+
+    genotypes_dict - The filtered genotypes dictionary data structure where keys are chromosome_id and position_id of each SNP and the value is the genotype_list and genotype_metadata dictionaries. The genotype list contains the genotype information of which genotype is at the position and the genotype metadata contains the minor/major allele counts, frequency, and the allele bases. As well as the total number of alleles.
+
 '''
 def parse_genotypes_file(genotypes_infile,phenotypes_infile,maf_threshold):
 
     # Get the phenotypes dictionary data structure so we can filter the genotypes by phenotype.
     phenotypes_dict = parse_phenotypes_file(phenotypes_infile)
     
+    # If the genotypes_infile is a compressed file then uncompress the file and return the file path of the uncompressed file.
+    if(".gz" in genotypes_infile):
+        genotypes_infile = gunzip_input_files(genotypes_infile, output_dir)
+
+
     # Counter for header and data entry.
     row_counter = 0
 
@@ -280,9 +417,22 @@ def parse_genotypes_file(genotypes_infile,phenotypes_infile,maf_threshold):
     return(genotypes_dict,phenotypes_dict)
  
 '''
+Function generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_threshold, output_dir)
+
+Input
+
+phenotype_dict - The filtered phenotypes dictionary data structure where keys are genotype_ids and the value is the phenotype.
+
+genotypes_dict - The filtered genotypes dictionary data structure where keys are chromosome_id and position_id of each SNP and the value is the genotype_list and genotype_metadata dictionaries. The genotype list contains the genotype information of which genotype is at the position and the genotype metadata contains the minor/major allele counts, frequency, and the allele bases. As well as the total number of alleles.
+
+ output_dir - The output directory to write the output files.
  
+ Output:
+ 
+ 
+
 '''
-def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_threshold, output_dir):
+def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, output_dir):
 
     # The genotype id list data structure.
     genotype_list = []
@@ -308,46 +458,29 @@ def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_t
     # The plink genotypes ped output file.
     plink_genotype_ped_outfile = os.path.join(association_mapping_output_dir, "plink.genotype.ped.txt")
 
-    #print(plink_genotype_ped_outfile)
-
     # Writing the genotype scores to a TSV file for input into the plink program.
     tsvfile1 = open(plink_genotype_ped_outfile, 'w')
     tsvwriter1 = csv.writer(tsvfile1, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
-
-    ## Write the header for the genotype counts TSV file.
-    ##tsvwriter1.writerow(['marker_id'] + genotype_ids)
 
     # The plink genotypes map output file.
     plink_genotype_map_outfile = os.path.join(association_mapping_output_dir, "plink.genotype.map.txt")
     print(plink_genotype_map_outfile)
     
     # genotype map format for PLINK script
-    
     # Writing the genotype map to a TSV file for input into the PLINK program for PLINK input files.
     tsvfile2 = open(plink_genotype_map_outfile, 'w')
     tsvwriter2 = csv.writer(tsvfile2, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
-
-    # The mvp genotypes map output file.
-    mvp_genotype_map_outfile = os.path.join(association_mapping_output_dir, "mvp.genotype.map.txt")
-    print(mvp_genotype_map_outfile)
-    
-    # Writing the genotype map to a TSV file for input into the mvp program.
-    tsvfile3 = open(mvp_genotype_map_outfile, 'w')
-    tsvwriter3 = csv.writer(tsvfile3, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
-
-    ## Write the header for the mvp genotype map TSV file.
-    tsvwriter3.writerow(['marker_id', 'chromosome_id', 'position_id'])
 
     # The mvp phenotype output file.
     mvp_phenotype_outfile = os.path.join(association_mapping_output_dir, "mvp.phenotype.txt")
     print(mvp_phenotype_outfile)
     
     # Writing the mvp phenotype to a TSV file for input into the mvp program.
-    tsvfile4 = open(mvp_phenotype_outfile, 'w')
-    tsvwriter4 = csv.writer(tsvfile4, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
+    tsvfile3 = open(mvp_phenotype_outfile, 'w')
+    tsvwriter3 = csv.writer(tsvfile3, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONE)
 
     ## Write the header for the mvp phenotype TSV file.
-    tsvwriter4.writerow(['genotype_id', 'phenotype'])
+    tsvwriter3.writerow(['genotype_id', 'phenotype'])
 
     # Individual genotypes dictionary for storing the genotypes of each individual for the PED formatted file for PLINK.
     individual_genotypes = {}
@@ -373,21 +506,6 @@ def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_t
                 allele_base = genotype_list[str(genotype_id)]
                 genotype = allele_base
                 
-                # For numeric format for input into mvp.
-                # Initialize the genotype to a missing value by default.
-                # Genotypes should be either 0, 1, or 2 for homozygote 1, heterozygote, and homozygote 2 genotypes.
-#                encoded_genotype = "-9"
-#                if(allele_base == major_allele_base):
-#                    encoded_genotype = "0"
-#                if(allele_base == minor_allele_base):
-#                    encoded_genotype = "2"
-#
-#                # Append the genotype to each genotype id. The plink format takes the genotype 0 or 2 and delimits each allele of the genotype with a tab.
-#                if(not(genotype_id in individual_genotypes)):
-#                    individual_genotypes[genotype_id] = []
-#                    individual_genotypes[genotype_id].append(encoded_genotype)
-#                elif(genotype_id in individual_genotypes):
-#                    individual_genotypes[genotype_id].append(encoded_genotype)
                     
                 # Append the genotype twice to each genotype id. The plink format takes the genotype AA and delimits each allele of the genotype with a tab.
                 if(not(genotype_id in individual_genotypes)):
@@ -408,13 +526,7 @@ def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_t
             # Base-pair position (bp units)
             tsvwriter2.writerow([chromosome_id, marker_id, position_id])
             
-                        
-            # mvp MAP File format.
-            # rs# or snp identifier
-            # chromosome (1-22, X, Y or 0 if unplaced)
-            # Base-pair position (bp units)
-            tsvwriter3.writerow([marker_id, chromosome_id, position_id])
-
+                   
     # PLINK PED File format.
     # Family ID
     # Individual ID
@@ -431,9 +543,11 @@ def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_t
             
             tsvwriter1.writerow(["Family_ID", genotype_id, "Paternal_ID", "Maternal_ID", "other", phenotype] + genotype_list)
     #print(individual_genotypes)
+    
+    # Iterate over the individual_genotypes list and output the phenotypes to the mvp phenotypes output file.
     for genotype_id in individual_genotypes:
         #print(genotype_id)
-        tsvwriter4.writerow([str(genotype_id), phenotypes_dict[str(genotype_id)]])
+        tsvwriter3.writerow([str(genotype_id), phenotypes_dict[str(genotype_id)]])
     
     # Close the PLINK PED format file.
     tsvfile1.close()
@@ -441,31 +555,34 @@ def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_t
     # Close the PLINK MAP format file.
     tsvfile2.close()
     
-    # Close the mvp map format file.
+    # Close the phenotypes file.
     tsvfile3.close()
     
-    # Close the phenotypes file.
-    tsvfile4.close()
-    
-    return (plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_genotype_map_outfile, mvp_phenotype_outfile)
-
-
-
+    return (plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile)
 
 '''
-Function run_SNPHWE_marker_tests(genotypes_counts_infile, output_dir)
+Function run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infile, mvp_phenotype_infile, association_mapping_output_dir)
 
-Wrapper function for the snp_hwe_marker_tests.r script adapted from the http://csg.sph.umich.edu/abecasis/Exact/r_instruct.html website that  implements a fast exact Hardy-Weinberg Equilibrium test for SNPs as described in Wigginton, et al. (2005). The script makes use of the snp_hwe.r source file (http://csg.sph.umich.edu/abecasis/Exact/snp_hwe.r).
+Wrapper function for running plink to generate VCF files for the rMVP R script (rMVP_marker_tests.R) that performs a Generalized Linear Model (GLM), Mixed Linear Model (MLM) and the FarmCPU Model for SNP association tests. Plots the Quantile-Quantile (QQ) Plot for visualization of association tests and genotype quality (type I error rate) and Manhattan Plots to visualize significant SNP variants across the entire genome in the locations that were genotyped. Also generates SNP density plots and many other types of plots. Then runs the calculate_adjusted_pvalues.R script for calculating the Bonferroni correction and q-value (FDR) adjusted pvalues and returns the adjusted pvalues file as output.
+
 
 Input:
 
-genotypes_counts_infile - The genotype counts TSV file obtained from the generate_genotypes_counts_file function.
+    plink_genotype_ped_infile - The Pedigree format (PED) input file for plink.
 
-snp_hwe_results_outfile - The SNPHWE marker tests output file.
+    plink_genotype_map_infile - The genotype map format (MAP) input file for plink.
 
+    mvp_phenotype_infile - The phenotype list input file for rMVP.
+
+    association_mapping_output_dir - The association mapping output directory for plink and rMVP output files.
+
+
+Output:
+
+    adjusted_pvalues_infile - The adjusted pvalues output file.
 
 '''
-def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infile, mvp_genotype_map_infile, mvp_phenotype_infile, association_mapping_output_dir):
+def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infile, mvp_phenotype_infile, association_mapping_output_dir):
 
     # The output file prefix for plink command.
     out_prefix = os.path.join(os.path.dirname(plink_genotype_ped_infile), "mvp.genotype")
@@ -488,44 +605,14 @@ def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infi
     os.system(("Rscript rMVP_marker_tests.R -i {mvp_fixed_genotypes_vcf_file} -p {mvp_phenotype_infile} -o {association_mapping_output_dir}").format(mvp_fixed_genotypes_vcf_file=mvp_fixed_genotypes_vcf_file, mvp_phenotype_infile=mvp_phenotype_infile, association_mapping_output_dir=association_mapping_output_dir))
     
     
-    #return()
+    #adjusted_pvalues_infile
+    #return(adjusted_pvalues_infile)
     
-
-'''
-Function run_SNPHWE_marker_tests(genotypes_counts_infile, output_dir)
-
-Wrapper function for the snp_hwe_marker_tests.r script adapted from the http://csg.sph.umich.edu/abecasis/Exact/r_instruct.html website that  implements a fast exact Hardy-Weinberg Equilibrium test for SNPs as described in Wigginton, et al. (2005). The script makes use of the snp_hwe.r source file (http://csg.sph.umich.edu/abecasis/Exact/snp_hwe.r).
-
-Input:
-
-genotypes_counts_infile - The genotype counts TSV file obtained from the generate_genotypes_counts_file function.
-
-snp_hwe_results_outfile - The SNPHWE marker tests output file.
 
 
 '''
-def run_emmax_association_tests(genotype_ped_file, genotype_map_file, association_mapping_output_dir):
-
-    out_prefix = os.path.join(os.path.dirname(genotype_ped_file), "genotypes")
-    #os.system("source ~/.bash_profile")
-    #os.system("conda activate plink_env")
-    # plink --ped ../genotypes.ped --map ../genotypes.map --recode12 --output-missing-genotype 0 --transpose --allow-no-sex --out ../genotypes
-    os.system(("plink --ped {genotype_ped_file} --map {genotype_map_file} --recode12 --output-missing-genotype 0 --transpose --allow-no-sex --out {out_prefix}").format(genotype_ped_file=genotype_ped_file,genotype_map_file=genotype_map_file, out_prefix=out_prefix))
-    
-    genotypes_tfam_file = "".join([out_prefix, ".tfam"])
-    emmax_phenotypes_infile = os.path.join(association_mapping_output_dir, "emmax_phenotypes.txt")
-
-    emmax_outfile_prefix = os.path.join(association_mapping_output_dir, "emmax")
-
-    os.system(("{emmax_kin} -v -d 10 {out_prefix}").format(emmax_kin=emmax_kin,out_prefix=out_prefix))
-    
-    os.system(("awk -F' ' '{{print $1,$2,$6}}' < {genotypes_tfam_file} > {emmax_phenotypes_infile}").format(genotypes_tfam_file=genotypes_tfam_file,emmax_phenotypes_infile=emmax_phenotypes_infile))
-    
-    bn_kinf_matrix = ".".join([out_prefix, "BN.kinf"])
-    
-    os.system(("{emmax} -v -d 10 -t {out_prefix} -p {emmax_phenotypes_infile} -k {bn_kinf_matrix} -o {emmax_outfile_prefix}").format(emmax=emmax,out_prefix=out_prefix,emmax_phenotypes_infile=emmax_phenotypes_infile,bn_kinf_matrix=bn_kinf_matrix,emmax_outfile_prefix=emmax_outfile_prefix))
-
-
+alpha_value - The alpha value threshold for filtering SNP variants. If the P-value for the assocation test are greater than or equal to the alpha value it is retained and if the P-value is less than the alpha value will be filtered out of the dataset.
+'''
 def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenotypes_dict,alpha_value, parsed_genotypes_output_dir):
 
     # The genotype id list data structure.
@@ -675,16 +762,16 @@ def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenot
             # Genotype item pattern for genotype_id from the marker_id and allele base for generating apriori item patterns much like AprioriGWAS (2014) paper.
             # Chr5_Pos26963862_A
             apriori_genotype_item_pattern = "_".join([marker_id, allele_base])
+            
+            # If the genotype_id is not present in the apriori_genotype_files_dict data structure then initialize an empty array and append the first item.
             if(not(str(genotype_id) in apriori_genotype_files_dict[str(part_num)])):
                 apriori_genotype_files_dict[str(part_num)][str(genotype_id)] = []
                 apriori_genotype_files_dict[str(part_num)][str(genotype_id)].append(apriori_genotype_item_pattern)
-
+            # Else if the genotype_id is present in the apriori_genotype_files_dict data structure than append the item.
             elif(str(genotype_id) in apriori_genotype_files_dict[str(part_num)]):
                 apriori_genotype_files_dict[str(part_num)][str(genotype_id)].append(apriori_genotype_item_pattern)
             
-                
-        
-        
+        # Row counter for figuring out what is header and what is a row entry.
         row_counter = row_counter + 1
     
     # Iterate over the genotype_ids list so that we can add the phenotype data to the encoded_individual_genotypes data structure.
@@ -725,72 +812,20 @@ def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenot
         tsvfile2.close()
 
 
-
-            
-
 '''
-Function format_and_filter_SNPHWE_tests(snp_hwe_results_outfile):
-
-
-Format and filter SNPHWE test output file for input into the generate_qqmat_plots function.
-
-Plot the Quantile-Quantile (QQ) Plot for visualization of association tests and genotype quality (type I error rate) and Manhattan Plots to visualize significant SNP variants across the entire genome in the locations that were genotyped.
-
-Input:
-
-snp_hwe_results_infile -
-
-maf_threshold - The Minor Allele Frequency threshold for filting SNP variants. MAF values greater than or equal to this value with be retained and MAF values less than this value will be filtered out of the dataset. The default for MAF is 0.05 or 5%. Default: 0.05
-
-alpha_value - The alpha value threshold for filtering SNP variants. If the P-value for the SNPHWE tests are greater than or equal to the alpha value it is retained and if the P-value is less than the alpha value will be filtered out of the dataset. The default for alpha is 0.001 or 10^-3. Default: 0.001
-
-Output:
-
-Returns before filtering file and after filtering file for
+annotations.gff.gz
 '''
+#def annotate_filtered_snps():
 
 
-'''
-Function generate_qqmat_plots():
+### MAIN FUNCTION ###
 
-Plot the Quantile-Quantile (QQ) Plot for visualization of association tests and genotype quality (type I error rate) and Manhattan Plots to visualize significant SNP variants across the entire genome in the locations that were genotyped.
-
-Input:
-
- -
-
-output_dir -
-
-'''
-#def generate_qqmat_plots():
-
-
-#gunzip -c gene_model.gff.gz > gene_model.gff
-#gunzip -c genotype.csv.gz > genotype.csv
-
-maf_threshold = 0.01
-
-alpha_value = 0.0001
-
-phenotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/FT10.txt"
-#phenotypes_infile = "/home/kevin.muirhead/FT10.txt"
-
-genotypes_infile = "/Users/kevin.muirhead/Desktop/macbook_air/MDSC_679/ML_Project_1/genotype.csv"
-#genotypes_infile = "/home/kevin.muirhead/genotype.csv"
-
-output_dir = "/Users/kevin.muirhead/Desktop/GWAS_output_dir2"
-#output_dir = "/home/kevin.muirhead/GWAS_output_dir"
-
-
-# Create the output directory if it does not exist.
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-   
+# Parse the genotypes input file using the phenotypes file and MAF threshold for filtering genotypes.
 # Get the phenotypes and genotypes dictionary data structures for quick look up by genotype id.
 (genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile, maf_threshold)
 
 
-(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_genotype_map_outfile, mvp_phenotype_outfile) = generate_files_for_association_mapping(phenotypes_dict, genotypes_dict, maf_threshold, output_dir)
+(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile) = generate_files_for_association_mapping(phenotypes_dict, genotypes_dict, output_dir)
 
 # The emmax output directory.
 association_mapping_output_dir = os.path.join(output_dir, "ASSOCIATION_MAPPING_OUTPUT_DIR")
