@@ -7,7 +7,7 @@ import argparse
 
 ### Sample command for quality_filtering.py python script. Make sure that the ML_Project_1_env conda environment is activated.
 # conda activate ML_Project_1_env
-# python /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/quality_control.py --phenotypes_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/FT10.txt --genotypes_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/genotype.csv.gz --gff_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/gene_model.gff.gz --alpha_value 0.05 --maf_threshold 0.01 --output_dir /Users/kevin.muirhead/Desktop/GWAS_output_dir_test
+# python /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/quality_control.py --phenotypes_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/FT10.txt --genotypes_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/genotype.csv.gz --gff_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/gene_model.gff.gz --alpha_value 0.05 --maf_threshold 0.01 --output_dir /Users/kevin.muirhead/Desktop/GWAS_OUTPUT_DIR
 
 parser = argparse.ArgumentParser()
 
@@ -615,7 +615,7 @@ def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infi
     adjusted_pvalues_outfile = os.path.join(association_mapping_output_dir, "phenotype.MLM.adjusted.pvalues.csv")
         
     # Run the calculate_adjusted_pvalues.R script to calculate the boneferroni correction and qvalue (FDR) adjusted pvalues.
-    os.system("Rscript calculate_adjusted_pvalues.R -i {mvp_phenotype_association_file} -o ".format(mvp_phenotype_association_file=mvp_phenotype_association_file, adjusted_pvalues_outfile=adjusted_pvalues_outfile))
+    os.system("Rscript calculate_adjusted_pvalues.R -i {mvp_phenotype_association_file} -o {adjusted_pvalues_outfile} ".format(mvp_phenotype_association_file=mvp_phenotype_association_file, adjusted_pvalues_outfile=adjusted_pvalues_outfile))
     
     return(adjusted_pvalues_outfile)
 
@@ -860,7 +860,8 @@ association_mapping_output_dir = os.path.join(output_dir, "ASSOCIATION_MAPPING_O
 if not os.path.exists(association_mapping_output_dir):
     os.makedirs(association_mapping_output_dir)
  
-run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile, association_mapping_output_dir)
+# Run the run_mvp_association_tests and obtain the adjusted_pvalues_infile.
+adjusted_pvalues_infile = run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile, association_mapping_output_dir)
 
 # The parsed_genotypes_output_dir output directory.
 parsed_genotypes_output_dir = os.path.join(output_dir, "PARSED_GENOTYPES_OUTPUT_DIR")
