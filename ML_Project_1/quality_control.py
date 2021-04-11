@@ -5,6 +5,10 @@ import sys
 import os
 import argparse
 
+### Sample command for quality_filtering.py python script. Make sure that the ML_Project_1_env conda environment is activated.
+# conda activate ML_Project_1_env
+# python /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/quality_control.py --phenotypes_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/FT10.txt --genotypes_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/genotype.csv.gz --gff_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/gene_model.gff.gz --alpha_value 0.05 --maf_threshold 0.01 --output_dir /Users/kevin.muirhead/Desktop/GWAS_output_dir_test
+
 parser = argparse.ArgumentParser()
 
 phenotype_infile = None
@@ -14,6 +18,7 @@ maf_threshold = None
 alpha_value = None
 output_dir = None
 
+parser = argparse.ArgumentParser(description='Perform quality filtering of the phenotypes infile and genotypes infile of missing values, biallecic SNPs, minor allele frequency (MAF), association mapping of filtered variants, visualization using QQ-Plots, Manhattan Plots, SNP density plots, and quality filtering of SNP variant using the alpha_value. Make sure that the ML_Project_1_env conda environment is activated. conda activate ML_Project_1_env')
 parser.add_argument('--phenotypes_infile', action='store', dest='phenotypes_infile',
                     help='The phenotypes file as input. (i.e. FT10.txt)')
 parser.add_argument('--genotypes_infile', action='store', dest='genotypes_infile',
@@ -27,8 +32,6 @@ parser.add_argument('--alpha_value', action='store', dest='alpha_value',
 parser.add_argument('--output_dir', action='store', dest='output_dir',
                     help='output directory as input. (i.e. $HOME/output_dir)')
 parser.add_argument('--version', action='version', version='%(prog)s 1.0')
-
-
 
 # Parse parameter options results.
 results = parser.parse_args()
@@ -126,12 +129,7 @@ def gunzip_input_files(compressed_infile, output_dir):
     #print(filename)
     uncompressed_outfile = os.path.join(output_dir, filename)
    
-    print(uncompressed_outfile)
-      
-    #sys.exit()
-    print(compressed_infile)
-    print(uncompressed_outfile)
-
+    # Run the gunzip -c command to uncompress the gzipped file.
     os.system("gunzip -c {compressed_infile} > {uncompressed_outfile}".format(compressed_infile=compressed_infile, uncompressed_outfile=uncompressed_outfile))
 
     return(uncompressed_outfile)
@@ -419,17 +417,23 @@ def parse_genotypes_file(genotypes_infile,phenotypes_infile,maf_threshold):
 '''
 Function generate_files_for_association_mapping(phenotype_dict, genotypes_dict, maf_threshold, output_dir)
 
-Input
+Generates the plink Pedigree (PED) format and plink genotype map (MAP) format files and the phenotypes infile for the rMVP R script.
 
-phenotype_dict - The filtered phenotypes dictionary data structure where keys are genotype_ids and the value is the phenotype.
+Input:
 
-genotypes_dict - The filtered genotypes dictionary data structure where keys are chromosome_id and position_id of each SNP and the value is the genotype_list and genotype_metadata dictionaries. The genotype list contains the genotype information of which genotype is at the position and the genotype metadata contains the minor/major allele counts, frequency, and the allele bases. As well as the total number of alleles.
+    phenotype_dict - The filtered phenotypes dictionary data structure where keys are genotype_ids and the value is the phenotype.
 
- output_dir - The output directory to write the output files.
+    genotypes_dict - The filtered genotypes dictionary data structure where keys are chromosome_id and position_id of each SNP and the value is the genotype_list and genotype_metadata dictionaries. The genotype list contains the genotype information of which genotype is at the position and the genotype metadata contains the minor/major allele counts, frequency, and the allele bases. As well as the total number of alleles.
+
+     output_dir - The output directory to write the output files.
  
  Output:
  
- 
+     plink_genotype_ped_outfile - The Plink Pedigree (PED) format file.
+     
+     plink_genotype_map_outfile - The Plink Pedigree (PED) format file.
+     
+     mvp_phenotype_outfile - The rMVP phenotypes file.
 
 '''
 def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, output_dir):
@@ -563,7 +567,7 @@ def generate_files_for_association_mapping(phenotype_dict, genotypes_dict, outpu
 '''
 Function run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infile, mvp_phenotype_infile, association_mapping_output_dir)
 
-Wrapper function for running plink to generate VCF files for the rMVP R script (rMVP_marker_tests.R) that performs a Generalized Linear Model (GLM), Mixed Linear Model (MLM) and the FarmCPU Model for SNP association tests. Plots the Quantile-Quantile (QQ) Plot for visualization of association tests and genotype quality (type I error rate) and Manhattan Plots to visualize significant SNP variants across the entire genome in the locations that were genotyped. Also generates SNP density plots and many other types of plots. Then runs the calculate_adjusted_pvalues.R script for calculating the Bonferroni correction and q-value (FDR) adjusted pvalues and returns the adjusted pvalues file as output.
+Wrapper function for running plink to generate VCF files for the rMVP R script (rMVP_marker_tests.R) that performs a Generalized Linear Model (GLM), Mixed Linear Model (MLM) and the FarmCPU Model association tests on each SNP variant for each genotype. Plots the Quantile-Quantile (QQ) Plot for visualization of association tests and genotype quality (type I error rate) and Manhattan Plots to visualize significant SNP variants across the entire genome in the locations that were genotyped. Also generates SNP density plots and many other types of plots. Then runs the calculate_adjusted_pvalues.R script for calculating the Bonferroni correction and q-value (FDR) adjusted pvalues and returns the adjusted pvalues file as output.
 
 
 Input:
@@ -600,7 +604,7 @@ def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infi
     # Have to remove the "Family_ID_" code from the vcf file generated from plink as it interferes with the rMVP script.
     os.system("sed 's/Family_ID_//g' < {mvp_genotypes_vcf_file} > {mvp_fixed_genotypes_vcf_file}".format(mvp_genotypes_vcf_file=mvp_genotypes_vcf_file, mvp_fixed_genotypes_vcf_file=mvp_fixed_genotypes_vcf_file))
     
-    
+    # Run the rMVP_marker_tests.R for performing the GLM, MLM, and FarmCPU association tests.
     # Rscript rMVP_marker_tests.R -i ~/Desktop/GWAS_output_dir2/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.fixed.vcf -p ~/Desktop/GWAS_output_dir2/FILES_FOR_ASSOCIATION_MAPPING/mvp.phenotype.txt -o ~/Desktop/GWAS_output_dir2/ASSOCIATION_MAPPING_OUTPUT_DIR
     os.system(("Rscript rMVP_marker_tests.R -i {mvp_fixed_genotypes_vcf_file} -p {mvp_phenotype_infile} -o {association_mapping_output_dir}").format(mvp_fixed_genotypes_vcf_file=mvp_fixed_genotypes_vcf_file, mvp_phenotype_infile=mvp_phenotype_infile, association_mapping_output_dir=association_mapping_output_dir))
     
@@ -611,7 +615,24 @@ def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infi
 
 
 '''
-alpha_value - The alpha value threshold for filtering SNP variants. If the P-value for the assocation test are greater than or equal to the alpha value it is retained and if the P-value is less than the alpha value will be filtered out of the dataset.
+
+Function parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenotypes_dict,alpha_value, parsed_genotypes_output_dir)
+
+Parses the genotypes from the multiple corrected tests for adjusted pvalues using the alpha value as the cut-off. Retains qvalues <= 0.05 alpha_value for a 5% False discovery Rate (FDR).
+
+Input:
+
+    adjusted_pvalues_infile - The adjusted pvalues input file.
+
+    phenotype_dict - The filtered phenotypes dictionary data structure where keys are genotype_ids and the value is the phenotype.
+
+    genotypes_dict - The filtered genotypes dictionary data structure where keys are chromosome_id and position_id of each SNP and the value is the genotype_list and genotype_metadata dictionaries. The genotype list contains the genotype information of which genotype is at the position and the genotype metadata contains the minor/major allele counts, frequency, and the allele bases. As well as the total number of alleles.
+
+
+    alpha_value - The alpha value threshold for filtering SNP variants. If the P-value for the assocation test are greater than or equal to the alpha value it is retained and if the P-value is less than the alpha value will be filtered out of the dataset.
+
+    parsed_genotypes_output_dir - The parsed genotypes output directory for writing output files.
+
 '''
 def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenotypes_dict,alpha_value, parsed_genotypes_output_dir):
 
@@ -655,10 +676,9 @@ def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenot
                 chromosome_id = marker_id.split("_")[0].replace("Chr","")
                 position_id = marker_id.split("_")[1].replace("Pos","")
                 
-                # If the pvalue is less than or equal to the alpha_value.
-                # NEED TO FIX ONCE WE HAVE A BETTER ASSOCIATION MAPPING SYSTEM.
-                #print(float(p_value) <= float(alpha_value))
-                if(float(p_value) <= float(alpha_value)):
+                # If the q_value is less than or equal to the alpha_value.
+                #print(float(q_value) <= float(alpha_value))
+                if(float(q_value) <= float(alpha_value)):
                     filtered_genotypes_dict[marker_id] = genotypes_dict[chromosome_id][position_id]
                 
                     #print(genotypes_dict[chromosome_id][position_id])
@@ -827,7 +847,7 @@ annotations.gff.gz
 
 (plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile) = generate_files_for_association_mapping(phenotypes_dict, genotypes_dict, output_dir)
 
-# The emmax output directory.
+# The association mapping output directory.
 association_mapping_output_dir = os.path.join(output_dir, "ASSOCIATION_MAPPING_OUTPUT_DIR")
 
 # Create the emmax output directory if it does not exist.
@@ -836,13 +856,10 @@ if not os.path.exists(association_mapping_output_dir):
  
 run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile, association_mapping_output_dir)
 
-#run_emmax_association_tests(genotype_ped_outfile, genotype_map_outfile, association_mapping_output_dir)
-
 #adjusted_pvalues_infile = "/Users/kevin.muirhead/Desktop/GWAS_output_dir/ASSOCIATION_MAPPING_OUTPUT_DIR/emmax_adjusted_pvalues.txt"
-#adjusted_pvalues_infile = "/home/kevin.muirhead/GWAS_output_dir/ASSOCIATION_MAPPING_OUTPUT_DIR/emmax_adjusted_pvalues.tsv"
 
 # The parsed_genotypes_output_dir output directory.
-#parsed_genotypes_output_dir = os.path.join(output_dir, "PARSED_GENOTYPES_OUTPUT_DIR")
+parsed_genotypes_output_dir = os.path.join(output_dir, "PARSED_GENOTYPES_OUTPUT_DIR")
 
 # Create the emmax output directory if it does not exist.
 #if not os.path.exists(parsed_genotypes_output_dir):
