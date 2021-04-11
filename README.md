@@ -81,7 +81,7 @@ conda install -c conda-forge matplotlib
 
 ```
 
-Usage:
+Program Usage:
 
 ```
 # Activate the ML_Project_1_env conda environment.
@@ -91,6 +91,18 @@ conda activate ML_Project_1_env
 python $HOME/software/MDSC_679/ML_Project_1/quality_control.py --phenotypes_infile $HOME/software/MDSC_679/ML_Project_1/INPUT_FILES/FT10.txt --genotypes_infile $HOME/software/MDSC_679/ML_Project_1/INPUT_FILES/genotype.csv.gz --gff_infile $HOME/software/MDSC_679/ML_Project_1/INPUT_FILES/gene_model.gff.gz --alpha_value 0.05 --maf_threshold 0.01 --output_dir $HOME/GWAS_OUTPUT_DIR
 
 ```
+
+Program Input Parameters:
+
+| Parameters | Description |
+| ---------- | ----------- |
+| --phenotypes_infile | The file path containing list of sample names or ids (string) |
+| --genotypes_infile | The directory path for input fastq files (string) |
+| --gff_infile | The gene model annotation GFF format file (string) |
+| --maf_threshold | The minor allele frequency (MAF) threshold for filtering genotypes. (i.e. Default: 0.01) (float) |
+| --alpha_value | The alpha value as input for filtering adjusted pvalues of the rMVP association tests by the False Disovery Rate (FDR) (i.e. Default: 0.05) |
+| --output_dir | The output directory to write the output directories and files. (string) |
+
 ## MDSC_679: ML_Project_2
 
 The Implementation of the AprioriTID algorithm from the following paper;
