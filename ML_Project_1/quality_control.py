@@ -723,7 +723,7 @@ def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenot
         os.makedirs(apriori_genotype_pattern_output_dir)
     
     # Number of items per chromosome per genotype for Apriori algorithm.
-    num_items = 24
+    num_items = 10
     
     # The apriori genotypes file part number. There will be num_genotypes/num_items files. There will be at most num_items per file. Since patterns don't really matter the number of items per "transaction database" doesn't matter as we are trying to find the most frequent item sets.
     part_num = 1
@@ -898,29 +898,29 @@ def parse_annotation_gff_file(gff_infile):
 
 ## Parse the genotypes input file using the phenotypes file and MAF threshold for filtering genotypes.
 ## Get the phenotypes and genotypes dictionary data structures for quick look up by genotype id.
-#(genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile, maf_threshold)
-#
-#
-#(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile) = generate_files_for_association_mapping(phenotypes_dict, genotypes_dict, output_dir)
-#
-## The association mapping output directory.
-#association_mapping_output_dir = os.path.join(output_dir, "ASSOCIATION_MAPPING_OUTPUT_DIR")
-#
-## Create the emmax output directory if it does not exist.
-#if not os.path.exists(association_mapping_output_dir):
-#    os.makedirs(association_mapping_output_dir)
-#
-## Run the run_mvp_association_tests and obtain the adjusted_pvalues_infile.
-#adjusted_pvalues_infile = run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile, association_mapping_output_dir)
-#
-## The parsed_genotypes_output_dir output directory.
-#parsed_genotypes_output_dir = os.path.join(output_dir, "PARSED_GENOTYPES_OUTPUT_DIR")
-#
-## Create the parsed genotypes output directory if it does not exist.
-#if not os.path.exists(parsed_genotypes_output_dir):
-#    os.makedirs(parsed_genotypes_output_dir)
-#
-## Parse the multiple corrected assocation test adjusted pvalues file to obtain the encoded genotypes file and and the apriori transaction genotypes database file.
-#parse_multiple_corrected_tests(adjusted_pvalues_infile, genotypes_dict, phenotypes_dict, alpha_value, parsed_genotypes_output_dir)
+(genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile, maf_threshold)
 
-parse_annotation_gff_file(gff_infile)
+
+(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile) = generate_files_for_association_mapping(phenotypes_dict, genotypes_dict, output_dir)
+
+# The association mapping output directory.
+association_mapping_output_dir = os.path.join(output_dir, "ASSOCIATION_MAPPING_OUTPUT_DIR")
+
+# Create the emmax output directory if it does not exist.
+if not os.path.exists(association_mapping_output_dir):
+    os.makedirs(association_mapping_output_dir)
+
+# Run the run_mvp_association_tests and obtain the adjusted_pvalues_infile.
+adjusted_pvalues_infile = run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile, association_mapping_output_dir)
+
+# The parsed_genotypes_output_dir output directory.
+parsed_genotypes_output_dir = os.path.join(output_dir, "PARSED_GENOTYPES_OUTPUT_DIR")
+
+# Create the parsed genotypes output directory if it does not exist.
+if not os.path.exists(parsed_genotypes_output_dir):
+    os.makedirs(parsed_genotypes_output_dir)
+
+# Parse the multiple corrected assocation test adjusted pvalues file to obtain the encoded genotypes file and and the apriori transaction genotypes database file.
+parse_multiple_corrected_tests(adjusted_pvalues_infile, genotypes_dict, phenotypes_dict, alpha_value, parsed_genotypes_output_dir)
+
+#parse_annotation_gff_file(gff_infile)
