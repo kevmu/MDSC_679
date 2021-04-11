@@ -4,7 +4,7 @@ library('getopt');
 library('rMVP')
 
 # The R program usage example.
-# Rscript rMVP_marker_tests.R -i emmax.ps -o emmax_adjusted_pvalues.txt
+# Rscript rMVP_marker_tests.R -i genotypes.vcf -p phenotype_infile -o association_mapping_output_dir
 
 # Get options, using the spec as defined by the enclosed list.
 # We read the options from the default: commandArgs(TRUE).

@@ -41,20 +41,17 @@ infile = opt$infile;
 # The output directory parameter variable outfile_dir.
 adjusted_pvalue_results_outfile = opt$adjusted_pvalue_results_outfile;
 
-dataframe = read.table(infile, header=TRUE)
+# Read the input file into a dataframe.
+dataframe = read.csv(infile, header=TRUE)
 
-#head(dataframe)
-
-#print(dataframe[,3])
-
-# Get the pvalues for calculating adjusted pvalues
-pvalues = dataframe[,3]
+# Get the pvalues for calculating adjusted pvalues from column 8.
+pvalues = dataframe[, 8]
 
 # Calculate the Bonferroni correction to adjust pvalues.
 bonf_corr_pvalues = p.adjust(p = pvalues, method = "bonferroni")
 
-# Calculate the FDR to adjust pvalues.
-qvalues = p.adjust(p = pvalues, method = "BY"
+# Calculate the FDR to adjust pvalues using the BY method. Benjamini & Yekutieli (2001) ("BY").
+qvalues = p.adjust(p = pvalues, method = "BY")
 
 #print(qvalues)
 
@@ -62,28 +59,44 @@ qvalues = p.adjust(p = pvalues, method = "BY"
 num_markers = nrow(dataframe)
 
 # Write the header of the adjusted_pvalue_results_outfile file.
-cat(paste('marker_id', 'beta', 'p_value', 'bonf_corr_pvalue', 'q_value', sep='\t'), file=adjusted_pvalue_results_outfile, sep='\n')
+cat(paste('SNP', 'CHROM', 'POS', 'REF', 'ALT', 'Effect', 'SE', 'p_value', 'bonf_corr_pvalue', 'q_value', sep='\t'), file=adjusted_pvalue_results_outfile, sep='\n')
 
 # Iterate over the genotype counts dataframe.
 for (i in 1:num_markers) {
 
-    # Get the marker id at column 1.
-    marker_id  = dataframe[i, 1]
+    # SNP    CHROM    POS    REF    ALT    Effect    SE    phenotype.MLM
+    # Get the SNP id at column 1.
+    snp_id  = dataframe[i, 1]
+    
+    # Get the chromosome id at column 2.
+    chromosome_id  = dataframe[i, 2]
 
-    # Get the emmax algorithm beta value for the marker at column 2.
-    beta = dataframe[i, 2]
+    # Get the position id at column 3.
+    position_id = dataframe[i, 3]
 
-    # Get the emmax algorithm pvalue for the marker at column 3.
-    p_value = dataframe[i, 3]
+    # Get the reference allele at column 4.
+    ref_allele = dataframe[i, 4]
 
+    # Get the alternative allele at column 5.
+    alt_allele = dataframe[i, 5]
+    
+    # Get the mvp MLM effect at column 6.
+    effect = dataframe[i, 6]
+    
+    # Get the mvp MLM se at column 7.
+    se = dataframe[i, 7]
+    
+    # Get the mvp MLM se at column 8.
+    p_value = dataframe[i, 8]
+    
     # Get the Bonferroni corrected pvalue for the marker.
     bonf_corr_pvalue = bonf_corr_pvalues[i]
 
     # Get the FDR adjusted pvalue (qvalue) for the marker.
-    q_value = q_values[i]
+    q_value = qvalues[i]
 
     # Write the marker entry and results of the adjusted pvalues to the adjusted_pvalue_results_outfile file.
-    cat(paste(marker_id,beta,p_value,bonf_corr_pvalue,q_value,sep='\t'),file=adjusted_pvalue_results_outfile,sep='\n',append=TRUE)
+    cat(paste(snp_id,chromosome_id,position_id,ref_allele,alt_allele,effect,se,p_value,bonf_corr_pvalue,q_value,sep='\t'),file=adjusted_pvalue_results_outfile,sep='\n',append=TRUE)
 }
 
 

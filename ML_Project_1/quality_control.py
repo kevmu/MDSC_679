@@ -9,6 +9,11 @@ import argparse
 # conda activate ML_Project_1_env
 # python /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/quality_control.py --phenotypes_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/FT10.txt --genotypes_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/genotype.csv.gz --gff_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/gene_model.gff.gz --alpha_value 0.05 --maf_threshold 0.01 --output_dir /Users/kevin.muirhead/Desktop/GWAS_OUTPUT_DIR
 
+# Get the path of the script so that we can use the R scripts in the directory.
+python_path = sys.argv[0]
+app_dir = os.path.dirname(os.path.realpath(python_path))
+sys.path.append(os.path.abspath(app_dir))
+
 parser = argparse.ArgumentParser()
 
 phenotype_infile = None
@@ -612,7 +617,7 @@ def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infi
     mvp_phenotype_association_file = os.path.join(association_mapping_output_dir, "phenotype.MLM.csv")
     
     # The adjusted pvalues output file.
-    adjusted_pvalues_outfile = os.path.join(association_mapping_output_dir, "phenotype.MLM.adjusted.pvalues.csv")
+    adjusted_pvalues_outfile = os.path.join(association_mapping_output_dir, "phenotype.MLM.adjusted.pvalues.tsv")
         
     # Run the calculate_adjusted_pvalues.R script to calculate the boneferroni correction and qvalue (FDR) adjusted pvalues.
     os.system("Rscript calculate_adjusted_pvalues.R -i {mvp_phenotype_association_file} -o {adjusted_pvalues_outfile} ".format(mvp_phenotype_association_file=mvp_phenotype_association_file, adjusted_pvalues_outfile=adjusted_pvalues_outfile))
@@ -633,7 +638,6 @@ Input:
     phenotype_dict - The filtered phenotypes dictionary data structure where keys are genotype_ids and the value is the phenotype.
 
     genotypes_dict - The filtered genotypes dictionary data structure where keys are chromosome_id and position_id of each SNP and the value is the genotype_list and genotype_metadata dictionaries. The genotype list contains the genotype information of which genotype is at the position and the genotype metadata contains the minor/major allele counts, frequency, and the allele bases. As well as the total number of alleles.
-
 
     alpha_value - The alpha value threshold for filtering SNP variants. If the P-value for the assocation test are greater than or equal to the alpha value it is retained and if the P-value is less than the alpha value will be filtered out of the dataset.
 
@@ -672,9 +676,9 @@ def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenot
                     
                 #print(row)
                 #print(row_counter)
-                (marker_id, beta, p_value, bonf_corr_pvalue, q_value) = row
+                (marker_id,filtered_chromosome_id,filtered_position_id,ref_allele,alt_allele,effect,se,p_value,bonf_corr_pvalue,q_value) = row
                 
-                print(marker_id, beta, p_value, bonf_corr_pvalue, q_value)
+                print(marker_id,filtered_chromosome_id,filtered_position_id,ref_allele,alt_allele,effect,se,p_value,bonf_corr_pvalue,q_value)
                 
 
                 # Split the marker_id into the chromosome_id and position_id components for accessing the genotypes_dict contents.
@@ -682,9 +686,9 @@ def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenot
                 chromosome_id = marker_id.split("_")[0].replace("Chr","")
                 position_id = marker_id.split("_")[1].replace("Pos","")
                 
-                # If the q_value is less than or equal to the alpha_value.
-                #print(float(q_value) <= float(alpha_value))
-                if(float(q_value) <= float(alpha_value)):
+                # If the p_value is less than or equal to the alpha_value.
+                #print(float(p_value) <= float(alpha_value))
+                if(float(p_value) <= float(alpha_value)):
                     filtered_genotypes_dict[marker_id] = genotypes_dict[chromosome_id][position_id]
                 
                     #print(genotypes_dict[chromosome_id][position_id])
@@ -841,35 +845,82 @@ def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenot
 '''
 annotations.gff.gz
 '''
-#def annotate_filtered_snps():
+def parse_annotation_gff_file(gff_infile):
+
+    # If the gff_infile is a compressed file then uncompress the file and return the file path of the uncompressed file.
+    if(".gz" in gff_infile):
+        gff_infile = gunzip_input_files(gff_infile, output_dir)
+
+    # Counter for header and entry.
+    row_counter = 0
+
+    # Annotations data structure.
+    annotations_dict = {}
+
+    # Number of annoations counter.
+    num_annotations = 0
+    
+    # Parse the annotation gff file.
+    with open(gff_infile, 'r') as csvfile:
+        csv_reader = csv.reader(csvfile, delimiter='\t', quotechar='"')
+        
+        # Iterate over each row in the file.
+        for row in csv_reader:
+            if(not("#" in row)):
+                print(row)
+                sys.exit()
+#           # If the line is not the header.
+#            if(row_counter != 0):
+#
+#                #print(row)
+#
+#                # The genotype id of the phenotype.
+#                genotype_id = row[0]
+#
+#                # The flowering time phenotype value.
+#                flowering_time = row[1]
+#
+#                #print(genotype_id, flowering_time)
+#
+#                # Filter out phenotypes that have missing data in the form of "NA" and count the number of phenotypes.
+#                if(flowering_time != "NA"):
+#                    phenotypes_dict[genotype_id] = flowering_time
+#                    num_annotations = num_annotations + 1
+            row_counter = row_counter + 1
+            
+    # Close the annotations gff input file.
+    csvfile.close()
+    
+    return(annotations_dict)
 
 
 ### MAIN FUNCTION ###
 
-# Parse the genotypes input file using the phenotypes file and MAF threshold for filtering genotypes.
-# Get the phenotypes and genotypes dictionary data structures for quick look up by genotype id.
-(genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile, maf_threshold)
+## Parse the genotypes input file using the phenotypes file and MAF threshold for filtering genotypes.
+## Get the phenotypes and genotypes dictionary data structures for quick look up by genotype id.
+#(genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile, maf_threshold)
+#
+#
+#(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile) = generate_files_for_association_mapping(phenotypes_dict, genotypes_dict, output_dir)
+#
+## The association mapping output directory.
+#association_mapping_output_dir = os.path.join(output_dir, "ASSOCIATION_MAPPING_OUTPUT_DIR")
+#
+## Create the emmax output directory if it does not exist.
+#if not os.path.exists(association_mapping_output_dir):
+#    os.makedirs(association_mapping_output_dir)
+#
+## Run the run_mvp_association_tests and obtain the adjusted_pvalues_infile.
+#adjusted_pvalues_infile = run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile, association_mapping_output_dir)
+#
+## The parsed_genotypes_output_dir output directory.
+#parsed_genotypes_output_dir = os.path.join(output_dir, "PARSED_GENOTYPES_OUTPUT_DIR")
+#
+## Create the parsed genotypes output directory if it does not exist.
+#if not os.path.exists(parsed_genotypes_output_dir):
+#    os.makedirs(parsed_genotypes_output_dir)
+#
+## Parse the multiple corrected assocation test adjusted pvalues file to obtain the encoded genotypes file and and the apriori transaction genotypes database file.
+#parse_multiple_corrected_tests(adjusted_pvalues_infile, genotypes_dict, phenotypes_dict, alpha_value, parsed_genotypes_output_dir)
 
-
-(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile) = generate_files_for_association_mapping(phenotypes_dict, genotypes_dict, output_dir)
-
-# The association mapping output directory.
-association_mapping_output_dir = os.path.join(output_dir, "ASSOCIATION_MAPPING_OUTPUT_DIR")
-
-# Create the emmax output directory if it does not exist.
-if not os.path.exists(association_mapping_output_dir):
-    os.makedirs(association_mapping_output_dir)
- 
-# Run the run_mvp_association_tests and obtain the adjusted_pvalues_infile.
-adjusted_pvalues_infile = run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile, association_mapping_output_dir)
-
-# The parsed_genotypes_output_dir output directory.
-parsed_genotypes_output_dir = os.path.join(output_dir, "PARSED_GENOTYPES_OUTPUT_DIR")
-
-# Create the emmax output directory if it does not exist.
-if not os.path.exists(parsed_genotypes_output_dir):
-    os.makedirs(parsed_genotypes_output_dir)
-    
-# Parse the multiple corrected assocation test adjusted pvalues file to obtain the encoded genotypes file and and the apriori transaction genotypes database file.
-parse_multiple_corrected_tests(adjusted_pvalues_infile, genotypes_dict, phenotypes_dict, alpha_value, parsed_genotypes_output_dir)
-
+parse_annotation_gff_file(gff_infile)
