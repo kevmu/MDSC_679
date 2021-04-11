@@ -1,6 +1,6 @@
 # The library list of R package dependences.
 library('getopt');
-library('qvalue')
+#library('qvalue')
 
 # The R program usage example.
 # Rscript adjust_pvalues.R -i emmax.ps -o emmax_adjusted_pvalues.txt
@@ -51,29 +51,21 @@ dataframe = read.table(infile, header=TRUE)
 pvalues = dataframe[,3]
 
 # Calculate the Bonferroni correction to adjust pvalues.
-bonf_corr_pvalues = p.adjust(p = pvalues, method = "hommel")
+bonf_corr_pvalues = p.adjust(p = pvalues, method = "bonferroni")
 
-# Calculate the FDR qvalue adjusted pvalues.
-qvalues = qvalue(p = pvalues)
+# Calculate the FDR to adjust pvalues.
+qvalues = p.adjust(p = pvalues, method = "BY"
 
 #print(qvalues)
 
-q_values = qvalues$qvalues
-
-#print(qvalues$lfdr)
-
-#summary(qvalues)
-#print(qvalues$qvalues)
-#head(qvalues)
-
 # Get the number of markers in the genotype counts dataframe.
-n_markers = nrow(dataframe)
+num_markers = nrow(dataframe)
 
 # Write the header of the adjusted_pvalue_results_outfile file.
 cat(paste('marker_id', 'beta', 'p_value', 'bonf_corr_pvalue', 'q_value', sep='\t'), file=adjusted_pvalue_results_outfile, sep='\n')
 
 # Iterate over the genotype counts dataframe.
-for (i in 1:n_markers) {
+for (i in 1:num_markers) {
 
     # Get the marker id at column 1.
     marker_id  = dataframe[i, 1]
