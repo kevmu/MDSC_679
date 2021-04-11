@@ -58,6 +58,7 @@ for i in range(100):
         
 
 
+print("Final loss = ", loss)
 
 
 
