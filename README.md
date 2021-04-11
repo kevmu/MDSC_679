@@ -47,6 +47,9 @@ conda install -c bioconda plink
 # Install the r-base package for R.
 conda install -c conda-forge r-base
 
+# Open the R console terminal.
+R
+
 ## In R terminal
 
 # Install rMVP.
