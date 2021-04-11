@@ -834,7 +834,7 @@ association_mapping_output_dir = os.path.join(output_dir, "ASSOCIATION_MAPPING_O
 if not os.path.exists(association_mapping_output_dir):
     os.makedirs(association_mapping_output_dir)
  
-run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_genotype_map_outfile, mvp_phenotype_outfile, association_mapping_output_dir)
+run_mvp_association_tests(plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile, association_mapping_output_dir)
 
 #run_emmax_association_tests(genotype_ped_outfile, genotype_map_outfile, association_mapping_output_dir)
 
