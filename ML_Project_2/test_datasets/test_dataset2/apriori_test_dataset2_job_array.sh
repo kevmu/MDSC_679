@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
-#SBATCH --time=20:00:00
+#SBATCH --time=2-00:00:00
 #SBATCH --mem=38G
 #SBATCH --array=1-10%10
 #SBATCH --output=apriori_test_dataset2_job_array.%A_%a.out
