@@ -100,7 +100,7 @@ Program Input Parameters:
 | --genotypes_infile | The directory path for input fastq files (string) |
 | --gff_infile | The gene model annotation GFF format file (string) |
 | --maf_threshold | The minor allele frequency (MAF) threshold for filtering genotypes. (i.e. Default: 0.01) (float) |
-| --alpha_value | The alpha value as input for filtering adjusted pvalues of the rMVP association tests by the False Disovery Rate (FDR) (i.e. Default: 0.05) |
+| --alpha_value | The alpha value as input for filtering adjusted pvalues of the rMVP association tests by using adjusted pvalues using Bonferroni correction (i.e. Default: 0.05) |
 | --output_dir | The output directory to write the output directories and files. (string) |
 
 ## MDSC_679: ML_Project_2
