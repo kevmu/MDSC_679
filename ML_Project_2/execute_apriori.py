@@ -1,3 +1,12 @@
+'''
+
+Name: Kevin Muirhead
+UCID#: 00502756
+
+execute_apriori.py - Executes the Apriori Algorithm, calculates association rule metrics
+and prints the association rule metrics support, confidence, lift, leverage and conviction.
+
+'''
 import sys
 import os
 import argparse
@@ -5,10 +14,12 @@ import argparse
 import re
 import csv
 
+# Getting the path of the execute_apriori.py script.
 python_path = sys.argv[0]
 app_dir = os.path.dirname(os.path.realpath(python_path))
 sys.path.append(os.path.abspath(app_dir))
 
+# Import the Apriori Class.
 from Apriori import *
 
 parser = argparse.ArgumentParser()
@@ -17,6 +28,8 @@ database_infile = None
 min_support_count = 2
 min_confidence = 0.60
 output_dir = None
+
+parser = argparse.ArgumentParser(description='Perform the AprioriTID algorithm using the Apriori.py class. Executes the Apriori Algorithm, calculates association rule metrics and prints the association rule metrics support, confidence, lift, leverage and conviction. )
 
 parser.add_argument('--input_file', action='store', dest='database_infile',
                     help='The transaction database file as input. (i.e. $HOME/filename.tsv)')
@@ -78,4 +91,5 @@ filename = os.path.splitext(basename)[0]
 # The association rule metrics output file.
 association_rule_metrics_outfile = os.path.join(output_dir, "_".join([filename, "association_rule_metrics.tsv"]))
 
+# Run the Apriori agorithm and print out the association rule metrics to a file.
 Apriori(database_infile, association_rule_metrics_outfile, min_support_count, min_confidence)

@@ -34,11 +34,11 @@ class Apriori:
     
     database_infile - The database file as input. Contains two columns. The first column contains the transaction id and the second column the transaction entry. The transaction id can consist of any of the following integers, strings or characters. The transaction value entry contains a list of items delimited with a comma ',' character. The items can be any string. Can be integers, floats, strings or characters as long as commas ',' are used to separate items.
     
-    association_rule_metrics_outfile -
+    association_rule_metrics_outfile - The association rule metrics output file path.
     
     min_support_count - The minimum support count to consider items for prunning and retaining.
     
-    min_confidence - The minimum confidence to consider frequent itemsets
+    min_confidence - The minimum confidence to consider frequent itemsets.
     
     
     
@@ -62,17 +62,18 @@ class Apriori:
 
         
     '''
+    Method load_transaction_database(self, database_infile)
+    
     Load the transaction database using the database infile.
     
-    load_transaction_database
     
     Input:
     
-    database_infile
+        database_infile - The transaction database input file path.
         
     Output:
     
-    transaction_database - The transaction database data structure. Transaction ID as the key and the Transaction value entry as the value.
+        transaction_database - The transaction database data structure. Transaction ID as the key and the Transaction value entry as the value.
     
     '''
     def load_transaction_database(self, database_infile):
@@ -123,11 +124,19 @@ class Apriori:
 
     '''
     
-    Method generate_candidate_set1()
+    Method generate_candidate_set1(self)
 
+    Scans the transaction database for unique items to generate a Large 1-Itemset.
+    
     Output:
 
-    large_1_itemset - Returns the large 1-Itemset of the transaction database.
+        large_1_itemset - Returns the large 1-Itemset of the transaction database.
+        
+        large_1_support_count - The large_1_support_count dictionary data structure. Contains the item as the key and a counter as the value.
+        
+        large_1_transaction_ids - The large_1_transaction_ids dictionary data structure. Contains the item as the key and a list of transaction ids as the value.
+                
+                
         
     '''
     def generate_candidate_set1(self):
@@ -153,16 +162,17 @@ class Apriori:
                 #print(item)
                 
                 # If item does not exist in L1 then set the support counter to 1.
-                # Otherwise increment the item by 1.
                 if(not(item in large_1_support_count)):
                     large_1_support_count[item] = 1
-                    
+                # Else if the item does exist in L1 then increment the support counter by 1.
                 elif(item in large_1_support_count):
                     large_1_support_count[item] += 1
-                    
+                
+                # If item does not exist in L1 then initialize the L1 transaction ids array and append the first item.
                 if(not(item in large_1_transaction_ids)):
                     large_1_transaction_ids[item] = []
                     large_1_transaction_ids[item].append(transaction_id)
+                # Else if the item does exist in L1 then append the next item to the L1 transaction ids array.
                 elif(item in large_1_transaction_ids):
                     large_1_transaction_ids[item].append(transaction_id)
                             
@@ -204,6 +214,14 @@ class Apriori:
     '''
     apriori_gen - Apriori candidate generation step.  Join step
 
+    Input:
+    
+        prev_candidate_itemset -
+        
+        k - The size of the current k-itemset.
+        
+    Output:
+        
     '''
     def apriori_gen(self, prev_candidate_itemset, k):
 
