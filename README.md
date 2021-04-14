@@ -108,7 +108,7 @@ Program Input Parameters:
 The Implementation of the AprioriTID algorithm from the following paper;
 <br>
 <br>
-“An Improved Apriori Algorithm For Association Rules.”, Al-Maolegi, Mohammed & Arkok, Bassam. (2014). International Journal on Natural Language Computing. 3. 10.5121/ijnlc.2014.3103.
+“Fast Algorithms for Mining Association Rules”, Agrawal, R., Ramakrishnan, S. (1994), Proc. 20th int. conf. very large data bases, VLDB 1215(pp. 487-499). doi: 10.1.1.40.7506![image](https://user-images.githubusercontent.com/17155417/114643535-13b9c780-9c93-11eb-99e9-962c4bdaa3e8.png)
 <br>
 <br>
 Contains the Design and Implementation Report Microsoft Word Document, source code and source code documentation.
