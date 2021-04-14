@@ -1,5 +1,12 @@
 #!/usr/bin/env python
+'''
+Name: Kevin Muirhead
+UCID#: 00502756
 
+ML_Project_1 - Quality Control step.
+
+
+'''
 import csv
 import sys
 import os
@@ -7,7 +14,7 @@ import argparse
 
 ### Sample command for quality_filtering.py python script. Make sure that the ML_Project_1_env conda environment is activated.
 # conda activate ML_Project_1_env
-# python /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/quality_control.py --phenotypes_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/FT10.txt --genotypes_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/genotype.csv.gz --gff_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/gene_model.gff.gz --alpha_value 0.05 --maf_threshold 0.01 --output_dir /Users/kevin.muirhead/Desktop/GWAS_OUTPUT_DIR
+# python /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/quality_control.py --phenotypes_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/FT10.txt --genotypes_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/genotype.csv.gz --gff_infile /Users/kevin.muirhead/Desktop/MDSC_679/ML_Project_1/INPUT_FILES/gene_model.gff.gz --alpha_value 0.05 --maf_threshold 0.01 --output_dir /Users/kevin.muirhead/Desktop/GWAS_OUTPUT_DIR_bonf_corr_value
 
 # Get the path of the script so that we can use the R scripts in the directory.
 python_path = sys.argv[0]
@@ -89,7 +96,7 @@ if(maf_threshold == None):
     sys.exit(1)
 if(alpha_value == None):
     print('\n')
-    print('error: please use the --alpha_value option to specify the alpha value as input for filtering adjusted pvalues of the rMVP association tests by the False Disovery Rate (FDR) ')
+    print('error: please use the --alpha_value option to specify the alpha value as input for filtering adjusted pvalues of the rMVP association tests by the Bonferroni corrected pvalues')
     print('alpha_value =' + ' ' + str(alpha_value))
     print('\n')
     parser.print_help()
@@ -613,11 +620,11 @@ def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infi
     # Rscript rMVP_marker_tests.R -i ~/Desktop/GWAS_output_dir2/FILES_FOR_ASSOCIATION_MAPPING/mvp.genotype.fixed.vcf -p ~/Desktop/GWAS_output_dir2/FILES_FOR_ASSOCIATION_MAPPING/mvp.phenotype.txt -o ~/Desktop/GWAS_output_dir2/ASSOCIATION_MAPPING_OUTPUT_DIR
     os.system(("Rscript rMVP_marker_tests.R -i {mvp_fixed_genotypes_vcf_file} -p {mvp_phenotype_infile} -o {association_mapping_output_dir}").format(mvp_fixed_genotypes_vcf_file=mvp_fixed_genotypes_vcf_file, mvp_phenotype_infile=mvp_phenotype_infile, association_mapping_output_dir=association_mapping_output_dir))
     
-    # The mvp phenotype association test results Mixed Linear Model (MLM) file.
-    mvp_phenotype_association_file = os.path.join(association_mapping_output_dir, "phenotype.MLM.csv")
+    # The mvp phenotype association test results FarmCPU Model file.
+    mvp_phenotype_association_file = os.path.join(association_mapping_output_dir, "phenotype.FarmCPU.csv")
     
     # The adjusted pvalues output file.
-    adjusted_pvalues_outfile = os.path.join(association_mapping_output_dir, "phenotype.MLM.adjusted.pvalues.tsv")
+    adjusted_pvalues_outfile = os.path.join(association_mapping_output_dir, "phenotype.FarmCPU.adjusted.pvalues.tsv")
         
     # Run the calculate_adjusted_pvalues.R script to calculate the boneferroni correction and qvalue (FDR) adjusted pvalues.
     os.system("Rscript calculate_adjusted_pvalues.R -i {mvp_phenotype_association_file} -o {adjusted_pvalues_outfile} ".format(mvp_phenotype_association_file=mvp_phenotype_association_file, adjusted_pvalues_outfile=adjusted_pvalues_outfile))
@@ -629,7 +636,7 @@ def run_mvp_association_tests(plink_genotype_ped_infile, plink_genotype_map_infi
 
 Function parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenotypes_dict,alpha_value, parsed_genotypes_output_dir)
 
-Parses the genotypes from the multiple corrected tests for adjusted pvalues using the alpha value as the cut-off. Retains qvalues <= 0.05 alpha_value for a 5% False discovery Rate (FDR). Outputs the encoded genotypes and the apriori transaction genotypes database files.
+Parses the genotypes from the multiple corrected tests for adjusted pvalues using the alpha value as the cut-off. Retains bonf_corr_pvalue <= 0.05 alpha_value for a Bonferroni corrected pvalue. Outputs the encoded genotypes and the apriori transaction genotypes database files.
 
 Input:
 
@@ -639,7 +646,7 @@ Input:
 
     genotypes_dict - The filtered genotypes dictionary data structure where keys are chromosome_id and position_id of each SNP and the value is the genotype_list and genotype_metadata dictionaries. The genotype list contains the genotype information of which genotype is at the position and the genotype metadata contains the minor/major allele counts, frequency, and the allele bases. As well as the total number of alleles.
 
-    alpha_value - The alpha value threshold for filtering SNP variants. If the P-value for the assocation test are greater than or equal to the alpha value it is retained and if the P-value is less than the alpha value will be filtered out of the dataset.
+    alpha_value - The alpha value threshold for filtering SNP variants. If the Bonferroni corrected pvalue for the assocation test are greater than or equal to the alpha value it is retained and if the Bonferroni corrected pvalue is less than the alpha value will be filtered out of the dataset.
 
     parsed_genotypes_output_dir - The parsed genotypes output directory for writing output files.
 
@@ -686,9 +693,9 @@ def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenot
                 chromosome_id = marker_id.split("_")[0].replace("Chr","")
                 position_id = marker_id.split("_")[1].replace("Pos","")
                 
-                # If the p_value is less than or equal to the alpha_value.
-                #print(float(p_value) <= float(alpha_value))
-                if(float(p_value) <= float(alpha_value)):
+                # If the bonf_corr_pvalue is less than or equal to the alpha_value.
+                #print(float(bonf_corr_pvalue) <= float(alpha_value))
+                if(float(bonf_corr_pvalue) < float(alpha_value)):
                     filtered_genotypes_dict[marker_id] = genotypes_dict[chromosome_id][position_id]
                 
                     #print(genotypes_dict[chromosome_id][position_id])
