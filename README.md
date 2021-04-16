@@ -104,7 +104,7 @@ Program Input Parameters:
 | --alpha_value | The alpha value as input for filtering adjusted pvalues of the rMVP association tests by using adjusted pvalues using Bonferroni correction (i.e. Default: 0.05) |
 | --output_dir | The output directory to write the output directories and files. (string) |
 
-```
+
 
 Program Usage polygenetic_linear_regression.py:
 
@@ -113,7 +113,8 @@ Program Usage polygenetic_linear_regression.py:
 conda activate ML_Model_env
 
 # Execute the polygenetic_linear_regression.py python script for performing Polygenetic Linear Regression.
-python $HOME/software/MDSC_679/ML_Project_1/polygenetic_linear_regression.py
+
+python $HOME/software/MDSC_679/ML_Project_1/polygenetic_linear_regression.py --encoded_genotypes_infile   GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/encoded_genotypes.tsv --output_dir  GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/POLYGENETIC_LINEAR_REGRESSION_METRICS_OUTPUT_DIR
 
 ```
 
@@ -124,7 +125,7 @@ Program Input Parameters:
 | --phenotypes_infile | The file path containing list of sample names or ids (string) |
 | --output_dir | The output directory to write the output directories and files. (string) |
 
-```
+
 
 Program Usage lasso_regression.py:
 
@@ -133,8 +134,8 @@ Program Usage lasso_regression.py:
 conda activate ML_Model_env
 
 # Execute the lasso_regression.py python script for performing LASSO Regression (L1 Regularization).
-python $HOME/software/MDSC_679/ML_Project_1/lasso_regression.py
 
+python $HOME/software/MDSC_679/ML_Project_1/lasso_regression.py --encoded_genotypes_infile   GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/encoded_genotypes.tsv --output_dir  GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/LASSO_REGRESSION_METRICS_OUTPUT_DIR
 
 ```
 
@@ -146,7 +147,6 @@ Program Input Parameters:
 | --output_dir | The output directory to write the output directories and files. (string) |
 
 
-```
 
 Program Usage ridge_regression.py:
 
@@ -155,7 +155,8 @@ Program Usage ridge_regression.py:
 conda activate ML_Model_env
 
 # Execute the ridge_regression.py python script for performing RIDGE Regression (L2 Regularization).
-python $HOME/software/MDSC_679/ML_Project_1/ridge_regression.py
+
+python $HOME/software/MDSC_679/ML_Project_1/ridge_regression.py --encoded_genotypes_infile   GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/encoded_genotypes.tsv --output_dir  GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/RIDGE_REGRESSION_METRICS_OUTPUT_DIR
 
 ```
 
