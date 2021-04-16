@@ -1,3 +1,9 @@
+# Name: Kevin Muirhead
+# UCID#: 00502756
+
+# adjust_pvalues.R  - Performs adjusted pvalue calculation for multiple tests for SNP variant markers.
+
+
 # The library list of R package dependences.
 library('getopt');
 #library('qvalue')

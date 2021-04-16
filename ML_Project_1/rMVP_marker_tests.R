@@ -1,3 +1,8 @@
+# Name: Kevin Muirhead
+# UCID#: 00502756
+
+# rMVP_marker_tests.R - Performs the rMVP association tests for SNP variant markers.
+
 
 # The library list of R package dependences.
 library('getopt');
