@@ -113,7 +113,6 @@ Program Usage polygenetic_linear_regression.py:
 conda activate ML_Model_env
 
 # Execute the polygenetic_linear_regression.py python script for performing Polygenetic Linear Regression.
-
 python $HOME/software/MDSC_679/ML_Project_1/polygenetic_linear_regression.py --encoded_genotypes_infile   GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/encoded_genotypes.tsv --output_dir  GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/POLYGENETIC_LINEAR_REGRESSION_METRICS_OUTPUT_DIR
 
 ```
@@ -134,7 +133,6 @@ Program Usage lasso_regression.py:
 conda activate ML_Model_env
 
 # Execute the lasso_regression.py python script for performing LASSO Regression (L1 Regularization).
-
 python $HOME/software/MDSC_679/ML_Project_1/lasso_regression.py --encoded_genotypes_infile   GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/encoded_genotypes.tsv --output_dir  GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/LASSO_REGRESSION_METRICS_OUTPUT_DIR
 
 ```
@@ -155,7 +153,6 @@ Program Usage ridge_regression.py:
 conda activate ML_Model_env
 
 # Execute the ridge_regression.py python script for performing RIDGE Regression (L2 Regularization).
-
 python $HOME/software/MDSC_679/ML_Project_1/ridge_regression.py --encoded_genotypes_infile   GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/encoded_genotypes.tsv --output_dir  GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/RIDGE_REGRESSION_METRICS_OUTPUT_DIR
 
 ```
@@ -185,9 +182,9 @@ Program Usage execute_apriori.py:
 # Execute the execute_apriori.py python script for performing the Apriori Algorithm, calculates association rule metrics and prints the association rule metrics support, confidence, lift, leverage and conviction.
 
 python $HOME/software/MDSC_679/ML_Project_2/execute_apriori.py --input_file $HOME/software/MDSC_679/ML_Project_2/test_datasets/test_dataset1/transaction_database1.tsv --min_support_count 2 --min_confidence 0.60 --output_dir  $HOME/software/MDSC_679/ML_Project_2/test_dataset1_output_dir
-
-Make sure that you are in the ML_Project_2 directory to use the Apriori.py python class file.
 ```
+Make sure that you are in the ML_Project_2 directory to use the Apriori.py python class file.
+
 
 Program Input Parameters:
 
