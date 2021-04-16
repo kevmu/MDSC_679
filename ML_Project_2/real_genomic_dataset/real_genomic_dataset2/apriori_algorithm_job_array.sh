@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --time=20:00:00
 #SBATCH --mem=38G
-#SBATCH --array=1-4%4
+#SBATCH --array=1
 #SBATCH --output=apriori_algorithm_job_array.%A_%a.out
 #SBATCH --error=apriori_algorithm_job_array.%A_%a.err
 
@@ -18,10 +18,10 @@ echo "started at: ${start_time}"
 #mkdir -p $logs_dir
 
 # The list of apriori_genotype_pattern_files 
-list="${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genotype_pattern_file_list.txt"
+list="${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/real_genomic_dataset2/apriori_genotype_pattern_file_list.txt"
 
 # The output directory.
-output_dir="${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genomic_dataset_output"
+output_dir="${HOME}/MDSC_679/ML_Project_2/real_genomic_dataset/real_genomic_dataset2/apriori_genomic_dataset_output"
 mkdir -p $output_dir
 
 IFS=$'\n' array=($(<$list))
