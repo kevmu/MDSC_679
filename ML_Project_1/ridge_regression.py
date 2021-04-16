@@ -64,16 +64,14 @@ scores = cross_val_score(model,
 print('CV Mean: ', np.mean(scores))
 print('STD: ', np.std(scores))
     
-# find optimal alpha with a randomized search
+# Find optimal alpha with a randomized search.
 alpha = arange(0, 8, 0.0001)
 
 print(len(alpha))
 
-
+# Perform the randomized search to optimize hypertuning parameters.
 param_grid = {'alpha': alpha}
-rand_search = RandomizedSearchCV(estimator=model,
-                                param_distributions=param_grid,
-                               n_iter=10000)
+rand_search = RandomizedSearchCV(estimator=model, param_distributions=param_grid, n_iter=10000)
 
 rand_search.fit(x_train, y_train)
 best_alpha = rand_search.best_estimator_.alpha
@@ -89,7 +87,7 @@ model = Ridge(alpha=best_alpha, fit_intercept=True, normalize=False, max_iter=10
 # Fit the model.
 model.fit(x_train, y_train)
 
-# Train the model.
+# Predict the model.
 pred_train = model.predict(x_train)
 
 # Calculate the Mean Absolute Percentage Error (MAPE) train set score.
@@ -97,17 +95,20 @@ mape_train = mape(y_train,pred_train)
 print("mape_train value: ", mape_train)
 
 # The Mean Absolute Percentage Error (MAPE) train set accuracy score.
-train_accuracy = (100 - mape_train)
-print('Train accuracy of Ridge Regression: {:0.2f}%.'.format(train_accuracy))
+mape_train_accuracy = (100 - mape_train)
+print('Train accuracy of Ridge Regression: {:0.2f}%.'.format(mape_train_accuracy))
 
 # The Mean Squared Error (MSE) train set score.
-print("mean_squared_error train score: ", mean_squared_error(y_train,pred_train))
+mean_squared_error_train = mean_squared_error(y_train,pred_train)
+print("mean_squared_error train score: ", mean_squared_error_train)
 
 # The Root Mean Squared Error (RMSE) train set score.
-print("sqrt mean_squared_error train score: ", np.sqrt(mean_squared_error(y_train,pred_train)))
+root_mean_squared_error_train = np.sqrt(mean_squared_error(y_train,pred_train))
+print("sqrt mean_squared_error train score: ", root_mean_squared_error_train)
 
 # The Coefficient of determination R-squared (R2) train set score.
-print("r2_train score: ", r2_score(y_train, pred_train))
+r2_score_train = r2_score(y_train, pred_train)
+print("r2_train score: ", r2_score_train)
 
 # Predict the model
 pred_test = model.predict(x_test)
@@ -117,17 +118,21 @@ mape_test = mape(y_test,pred_test)
 print("mape_test value: ", mape_test)
 
 # The Mean Absolute Percentage Error (MAPE) test set score.
-test_accuracy = (100 - mape_test)
+mape_test_accuracy = (100 - mape_test)
 
 # The Mean Absolute Percentage Error (MAPE) test set accuracy score.
-print('Test accuracy of Ridge Regression: {:0.2f}%.'.format(test_accuracy))
+print('Test accuracy of Ridge Regression: {:0.2f}%.'.format(mape_test_accuracy))
 
 # The Mean Squared Error (MSE) test set score.
-print("mean_squared_error test score: ", mean_squared_error(y_test,pred_test))
+mean_squared_error_test = mean_squared_error(y_test,pred_test)
+print("mean_squared_error test score: ", mean_squared_error_test)
 
 # The Root Mean Squared Error (RMSE) test set score.
-print("sqrt mean_squared_error test score: ", np.sqrt(mean_squared_error(y_test,pred_test)))
+root_mean_squared_error_test = np.sqrt(mean_squared_error(y_test,pred_test))
+print("sqrt mean_squared_error test score: ", root_mean_squared_error_test)
 
 # The Coefficient of determination R-squared (R2) test set score.
-print("r2_test score: ", r2_score(y_test, pred_test))
+r2_score_test = r2_score(y_test, pred_test)
+print("r2_test score: ", r2_score_test)
 
+print(mean_squared_error_train,mean_squared_error_test,root_mean_squared_error_train,root_mean_squared_error_test,r2_score_train,r2_score_test,mape_train,mape_test,mape_train_accuracy,mape_test_accuracy)
