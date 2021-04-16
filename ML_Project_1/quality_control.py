@@ -1,12 +1,12 @@
-#!/usr/bin/env python
 '''
 Name: Kevin Muirhead
 UCID#: 00502756
 
-ML_Project_1 - Quality Control step.
-
+quality_control.py - Perform quality filtering of the phenotypes infile and genotypes infile of missing values, biallecic SNPs, minor allele frequency (MAF), association mapping of filtered variants, visualization using QQ-Plots, Manhattan Plots, SNP density plots, and quality filtering of SNP variant using the alpha_value. Make sure that the ML_Project_1_env conda environment is activated. conda activate ML_Project_1_env.
 
 '''
+
+#!/usr/bin/env python
 import csv
 import sys
 import os
