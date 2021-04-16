@@ -32,7 +32,7 @@ output_dir = None
 # Usage example
 # python $HOME/software/MDSC_679/ML_Project_2/execute_apriori.py --input_file $HOME/software/MDSC_679/ML_Project_2/test_datasets/test_dataset1/transaction_database1.tsv --min_support_count 2 --min_confidence 0.60 --output_dir  $HOME/software/MDSC_679/ML_Project_2/test_dataset1_output_dir
 
-parser = argparse.ArgumentParser(description='Perform the AprioriTID algorithm using the Apriori.py class. Executes the Apriori Algorithm, calculates association rule metrics and prints the association rule metrics support, confidence, lift, leverage and conviction. )
+parser = argparse.ArgumentParser(description='Perform the AprioriTID algorithm using the Apriori.py class. Executes the Apriori Algorithm, calculates association rule metrics and prints the association rule metrics support, confidence, lift, leverage and conviction.' )
 
 parser.add_argument('--input_file', action='store', dest='database_infile',
                     help='The transaction database file as input. (i.e. $HOME/filename.tsv)')
