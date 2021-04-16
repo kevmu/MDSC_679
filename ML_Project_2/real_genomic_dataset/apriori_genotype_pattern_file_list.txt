@@ -1,4 +1,0 @@
-/home/kevin.muirhead/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genotype_pattern_files/apriori_genotypes_part1.tsv
-/home/kevin.muirhead/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genotype_pattern_files/apriori_genotypes_part2.tsv
-/home/kevin.muirhead/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genotype_pattern_files/apriori_genotypes_part3.tsv
-/home/kevin.muirhead/MDSC_679/ML_Project_2/real_genomic_dataset/apriori_genotype_pattern_files/apriori_genotypes_part4.tsv
