@@ -1,0 +1,2 @@
+mean_squared_error_train	mean_squared_error_test	root_mean_squared_error_train	root_mean_squared_error_test	r2_score_train	r2_score_test	mape_train	mape_test	mape_train_accuracy	mape_test_accuracy
+103.24619984892898	116.70752676929499	10.161013721520554	10.803125786979201	0.7596703498037012	0.7518861262565608	10.117078891443454	11.32049169501405	89.88292110855654	88.67950830498594
