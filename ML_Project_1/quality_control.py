@@ -851,6 +851,9 @@ def parse_multiple_corrected_tests(adjusted_pvalues_infile,genotypes_dict,phenot
 
 '''
 annotations.gff.gz
+
+## Did not get to finish this function. Since I had 9 SNP variant markers I just did it by hand.
+
 '''
 def parse_annotation_gff_file(gff_infile):
 
@@ -907,7 +910,7 @@ def parse_annotation_gff_file(gff_infile):
 ## Get the phenotypes and genotypes dictionary data structures for quick look up by genotype id.
 (genotypes_dict,phenotypes_dict) = parse_genotypes_file(genotypes_infile, phenotypes_infile, maf_threshold)
 
-
+# Generate files for rMVP association mapping
 (plink_genotype_ped_outfile, plink_genotype_map_outfile, mvp_phenotype_outfile) = generate_files_for_association_mapping(phenotypes_dict, genotypes_dict, output_dir)
 
 # The association mapping output directory.
