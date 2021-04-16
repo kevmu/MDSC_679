@@ -122,8 +122,8 @@ Program Input Parameters:
 
 | Parameters | Description |
 | ---------- | ----------- |
-| --phenotypes_infile | The file path containing list of sample names or ids (string) |
-| --output_dir | The output directory to write the output directories and files. (string) |
+| --encoded_genotypes_infile | The encoded genotypes file as input. (i.e. $HOME/filename.tsv) (string) |
+| --output_dir | The output directory as input. (i.e. $HOME/output_dir) (string) |
 
 
 
@@ -143,8 +143,8 @@ Program Input Parameters:
 
 | Parameters | Description |
 | ---------- | ----------- |
-| --phenotypes_infile | The file path containing list of sample names or ids (string) |
-| --output_dir | The output directory to write the output directories and files. (string) |
+| --encoded_genotypes_infile | The encoded genotypes file as input. (i.e. $HOME/filename.tsv) (string) |
+| --output_dir | The output directory as input. (i.e. $HOME/output_dir) (string) |
 
 
 
@@ -164,8 +164,8 @@ Program Input Parameters:
 
 | Parameters | Description |
 | ---------- | ----------- |
-| --phenotypes_infile | The file path containing list of sample names or ids (string) |
-| --output_dir | The output directory to write the output directories and files. (string) |
+| --encoded_genotypes_infile | The encoded genotypes file as input. (i.e. $HOME/filename.tsv) (string) |
+| --output_dir | The output directory as input. (i.e. $HOME/output_dir) (string) |
 
 
 ## MDSC_679: ML_Project_2
