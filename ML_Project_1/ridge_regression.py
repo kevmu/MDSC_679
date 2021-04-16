@@ -7,21 +7,19 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 
-from sklearn.model_selection import GridSearchCV
-from scipy.stats import uniform
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import RepeatedKFold
 from sklearn.linear_model import Ridge
-from sklearn.linear_model import RidgeCV
-from yellowbrick.regressor import AlphaSelection
-from sklearn.metrics import r2_score
-from sklearn.metrics import mean_squared_error
+
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from math import sqrt
 
+# The Mean Absolute Percentage Error (MAPE) score calculation.
 def mape(y_actual,y_predicted):
     mape = np.mean(np.abs((y_actual - y_predicted)/y_actual))*100
     return mape
-    
+
+# The encoded genotypes and filtered phenotypes input file.
 encoded_genotypes_infile = "/Users/kevin.muirhead/Desktop/GWAS_OUTPUT_DIR_bonf_corr_value/PARSED_GENOTYPES_OUTPUT_DIR/encoded_genotypes.tsv"
 
 # The size of the train set for x and y.
@@ -66,23 +64,13 @@ scores = cross_val_score(model,
 print('CV Mean: ', np.mean(scores))
 print('STD: ', np.std(scores))
     
-# find optimal alpha with grid search
+# find optimal alpha with a randomized search
 alpha = arange(0, 8, 0.0001)
 
 print(len(alpha))
 
-#sys.exit()
 
-#param_grid = dict(alpha=alpha)
-
-#grid = GridSearchCV(estimator=model, param_grid=param_grid, scoring='r2', n_jobs=-1, n_iter=100)
-#grid_result = grid.fit(x_train, y_train)
-#print('Best Score: ', grid_result.best_score_)
-#print('Best Params: ', grid_result.best_params_)
-#
-#best_alpha = grid_result.best_params_['alpha']
-
-param_grid = {'alpha': uniform()}
+param_grid = {'alpha': alpha}
 rand_search = RandomizedSearchCV(estimator=model,
                                 param_distributions=param_grid,
                                n_iter=10000)
@@ -95,31 +83,51 @@ print(rand_search.best_estimator_.alpha)
 print(rand_search.best_score_)
 print(best_alpha)
 
+# The Ridge Regression (L2 Regularization) model.
 model = Ridge(alpha=best_alpha, fit_intercept=True, normalize=False, max_iter=1000)
+
+# Fit the model.
 model.fit(x_train, y_train)
+
+# Train the model.
 pred_train = model.predict(x_train)
+
+# Calculate the Mean Absolute Percentage Error (MAPE) train set score.
 mape_train = mape(y_train,pred_train)
 print("mape_train value: ", mape_train)
+
+# The Mean Absolute Percentage Error (MAPE) train set accuracy score.
 train_accuracy = (100 - mape_train)
 print('Train accuracy of Ridge Regression: {:0.2f}%.'.format(train_accuracy))
+
+# The Mean Squared Error (MSE) train set score.
 print("mean_squared_error train score: ", mean_squared_error(y_train,pred_train))
+
+# The Root Mean Squared Error (RMSE) train set score.
 print("sqrt mean_squared_error train score: ", np.sqrt(mean_squared_error(y_train,pred_train)))
+
+# The Coefficient of determination R-squared (R2) train set score.
 print("r2_train score: ", r2_score(y_train, pred_train))
 
+# Predict the model
 pred_test = model.predict(x_test)
-mape_test = mape(y_test,pred_test)
 
+# Calculate the Mean Absolute Percentage Error (MAPE) test set score.
+mape_test = mape(y_test,pred_test)
 print("mape_test value: ", mape_test)
+
+# The Mean Absolute Percentage Error (MAPE) test set score.
 test_accuracy = (100 - mape_test)
+
+# The Mean Absolute Percentage Error (MAPE) test set accuracy score.
 print('Test accuracy of Ridge Regression: {:0.2f}%.'.format(test_accuracy))
+
+# The Mean Squared Error (MSE) test set score.
 print("mean_squared_error test score: ", mean_squared_error(y_test,pred_test))
+
+# The Root Mean Squared Error (RMSE) test set score.
 print("sqrt mean_squared_error test score: ", np.sqrt(mean_squared_error(y_test,pred_test)))
+
+# The Coefficient of determination R-squared (R2) test set score.
 print("r2_test score: ", r2_score(y_test, pred_test))
 
-
-#pred_lasso = model.predict(x)
-#print(np.sqrt(mean_squared_error(y,pred_lasso)))
-#print(r2_score(y, pred_lasso))
-#
-
-#print(pred_lasso)
