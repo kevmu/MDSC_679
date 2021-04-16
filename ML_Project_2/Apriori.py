@@ -1,8 +1,3 @@
-from itertools import combinations, chain
-import csv
-import os
-import sys
-
 '''
 
 Name: Kevin Muirhead
@@ -10,6 +5,15 @@ UCID #: 00502756
 
 MDSC 679: ML Project #2: Implementing the Apriori algorithm
 
+'''
+
+# Import Python modules.
+from itertools import combinations, chain
+import csv
+import os
+import sys
+
+'''
 Class Apriori
 
 Performs the AprioriTID algorithm from the following paper;
@@ -25,6 +29,7 @@ http://rasbt.github.io/mlxtend/user_guide/frequent_patterns/association_rules/
 The description for each association rule metric method in this class was adapted from this article.
 
 '''
+
 class Apriori:
     
     '''
@@ -39,8 +44,6 @@ class Apriori:
     min_support_count - The minimum support count to consider items for prunning and retaining.
     
     min_confidence - The minimum confidence to consider frequent itemsets.
-    
-    
     
     '''
     def __init__(self, database_infile, association_rule_metrics_outfile, min_support_count, min_confidence):
@@ -126,7 +129,7 @@ class Apriori:
     
     Method generate_candidate_set1(self)
 
-    Scans the transaction database for unique items to generate a Large 1-Itemset.
+    Scans the transaction database for unique items to generate the Large 1-Itemset. Then scans the support counts for each item in the itemset to filter out items with support_count < self.min_support_count.
     
     Output:
 
@@ -135,8 +138,6 @@ class Apriori:
         large_1_support_count - The large_1_support_count dictionary data structure. Contains the item as the key and a counter as the value.
         
         large_1_transaction_ids - The large_1_transaction_ids dictionary data structure. Contains the item as the key and a list of transaction ids as the value.
-                
-                
         
     '''
     def generate_candidate_set1(self):
@@ -205,22 +206,27 @@ class Apriori:
         if(len(item_list) > 1):
             for item in sorted(item_list):
                 large_1_itemset.remove(item)
-            
+        
+        # Delete the temporary item list as it is not required anymore.
         del item_list
             
         return (large_1_itemset, large_1_support_count, large_1_transaction_ids)
 
 
     '''
-    apriori_gen - Apriori candidate generation step.  Join step
+    Method apriori_gen(self, prev_candidate_itemset, k)
+    
+    Apriori candidate generation and join step.
 
     Input:
     
-        prev_candidate_itemset -
+        prev_candidate_itemset - The previous candidate itemset data structure from the previous k iteration of the apriori algorithm
         
         k - The size of the current k-itemset.
         
     Output:
+    
+        new_candidate_k_itemset - The new candidate k-itemset data structure for use in the next iteration of the apriori algorithm.
         
     '''
     def apriori_gen(self, prev_candidate_itemset, k):
@@ -286,7 +292,26 @@ class Apriori:
 
         return(new_candidate_k_itemset)
 
-
+    '''
+    Method prune_k_itemset(self, candidate_support_count, candidate_transaction_ids)
+    
+    Scans the transaction database for k itemset items to generate the candidate k-Itemset. Then scans the support counts for each item in the itemset to filter out items with support_count < self.min_support_count to generate the Large-k-itemset. The pruning step. Then returns the large_k_itemset, large_k_support_count and large_k_transaction_ids.
+    
+    Input:
+    
+        candidate_support_count - The candidate_support_count dictionary data structure. Contains the item as the key and a counter as the value.
+        
+        candidate_transaction_ids - The candidate_transaction_ids dictionary data structure. Contains the item as the key and a list of transaction ids as the value.
+        
+    Output:
+    
+        large_k_itemset - Returns the large_k_itemset of the transaction database.
+        
+        large_k_support_count - The large_k_support_count dictionary data structure. Contains the item as the key and a counter as the value.
+        
+        large_k_transaction_ids - The large_k_transaction_ids dictionary data structure. Contains the item as the key and a list of transaction ids as the value.
+        
+    '''
     def prune_k_itemset(self, candidate_support_count, candidate_transaction_ids):
         #print(candidate_support_count)
         
@@ -329,11 +354,9 @@ class Apriori:
         
         
     '''
-    Function apriori
+    Method apriori
 
-    Description:
-
-    The Apriori algorithm
+    Performs the AprioriTID algorithm algorithm.
 
     Output:
 
@@ -445,7 +468,19 @@ class Apriori:
         return(frequent_itemsets)
 
     '''
+    Method support(self, item_support_count, num_transactions)
     
+    Calculates the support association rule metric.
+    
+    support = (float(item_support_count)/float(num_transactions))
+    
+    Input:
+        item_support_count - The support count of the item
+        
+        num_transactions - The number of transactions in the transactions database.
+    Output:
+        support - The calculated support association rule metric.
+        
     '''
     def support(self, item_support_count, num_transactions):
         support = (float(item_support_count)/float(num_transactions))
@@ -453,6 +488,22 @@ class Apriori:
     
     '''
     
+    Method confidence(self, itemA_support, itemB_support)
+    
+    Calculates the confidence association rule metric.
+    
+    confidence = (support(itemA U itemB))/(support(itemB))
+    
+    Input:
+    
+        itemA_support - The support count of itemA
+        
+        itemB_support - The support count of itemB
+        
+    Output:
+    
+        confidence - The calculated confidence association rule metric.
+        
     '''
     def confidence(self, itemA_support, itemB_support):
         
@@ -481,6 +532,22 @@ class Apriori:
         
     '''
     
+    Method lift(self, confidence, itemB_support)
+
+    Calculates the lift association rule metric.
+    
+    lift = confidence(itemA U itemB)/support(itemB)
+
+    Input:
+    
+        confidence - The confidence of itemA U itemB.
+        
+        itemB_support - The support count of itemB
+        
+    Output:
+    
+        lift - The calculated lift association rule metric.
+        
     '''
     def lift(self, confidence, itemB_support):
         # lift = confidence(itemA U itemB)/support(itemB)
@@ -495,7 +562,25 @@ class Apriori:
         return lift
        
     '''
-
+    
+    Method leverage(self, itemA_support, itemB_support, subset_support)
+    
+    Calculates the leverage association rule metric.
+    
+    leverage = support(itemA U itemB)/(support(itemA) * support(itemB))
+    
+    Input:
+    
+        itemA_support - The support count of itemA.
+        
+        itemB_support - The support count of itemB.
+        
+        subset_support - The support count of the subset of itemA U itemB.
+            
+    Output:
+    
+        leverage - The calculated leverage association rule metric.
+        
     '''
     def leverage(self, itemA_support, itemB_support, subset_support):
     
@@ -505,7 +590,22 @@ class Apriori:
         return leverage
         
     '''
-
+    
+    Method conviction(self, confidence, itemB_support)
+    
+    Calculates the conviction association rule metric.
+    
+    conviction = (1 - support(itemB))/(1 - confidence(itemA U itemB))
+             
+    Input:
+        confidence - The confidence of itemA U itemB.
+        
+        itemB_support - The support count of itemB.
+            
+    Output:
+    
+        conviction - The calculated conviction association rule metric.
+        
     '''
     def conviction(self, confidence, itemB_support):
     
@@ -524,6 +624,14 @@ class Apriori:
         
     '''
     
+    Method print_association_rules(self, association_rule_metrics_outfile)
+    
+    Writes the association rule metrics; support, confidence, lift, leverage and conviction to a TSV file for summary of association rules for each item in each k-itemset to the association_rule_metrics_outfile.
+    
+    Input:
+    
+        association_rule_metrics_outfile - The assocation rule metrics output file path.
+        
     '''
     def print_association_rules(self, association_rule_metrics_outfile):
 
