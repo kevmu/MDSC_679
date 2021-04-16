@@ -1,0 +1,10 @@
+SNP,CHROM,POS,REF,ALT,phenotype.FarmCPU,TAIR10 Locus ID,Annotation,Location of SNP
+Chr5_Pos3188327,5,3188327,C,T,3.97E-18,AT5G10170.1,myo-inositol-1-phosphate synthase 3,inside gene
+Chr2_Pos9581605,2,9581605,C,G,2.42E-10,AT2G22540,K-box region and MADS-box transcription factor family protein,inside gene
+Chr3_Pos20411685,3,20411685,C,A,2.54E-10,AT3G55080,SET domain-containing protein,inside gene
+Chr1_Pos3877554,1,3877554,G,A,1.19E-09,AT1G11540.2,Sulfite exporter TauE/SafE family protein,downstream of gene
+Chr5_Pos18513605,5,18513605,T,G,3.61E-08,AT5G45650.1,subtilase family protein,inside gene
+Chr2_Pos1022560,2,1022560,C,A,6.53E-08,AT2G03360,Glycosyltransferase family 61 protein,inside gene
+Chr1_Pos25117634,1,25117634,T,A,8.84E-08,AT1G67140.2,HEAT repeat-containing protein,downstream of gene
+Chr1_Pos19133268,1,19133268,C,G,1.49E-07,AT1G51600,ZIM-LIKE 2,inside gene
+Chr5_Pos18591253,5,18591253,C,T,1.76E-07,AT5G45830,delay of germination 1,inside gene
