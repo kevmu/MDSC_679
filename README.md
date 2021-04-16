@@ -186,6 +186,7 @@ Program Usage execute_apriori.py:
 python $HOME/software/MDSC_679/ML_Project_2/execute_apriori.py --input_file $HOME/software/MDSC_679/ML_Project_2/test_datasets/test_dataset1/transaction_database1.tsv --min_support_count 2 --min_confidence 0.60 --output_dir  $HOME/software/MDSC_679/ML_Project_2/test_dataset1_output_dir
 
 Make sure that you are in the ML_Project_2 directory to use the Apriori.py python class file.
+```
 
 Program Input Parameters:
 
