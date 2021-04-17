@@ -32,7 +32,30 @@ export PATH="${install_dir}/Miniconda3/bin:$PATH"
 
 ## MDSC_679: ML_Project_1
 
-Install the ML_Project_1 conda environment.
+Install the ML_Project_1 conda environment and ML_Model conda environment using the following environment files;
+
+Linux OS
+
+```
+cd "${project_dir}/MDSC_679/ML_Project_1/conda_envs/LinuxOS
+
+conda env create --file ML_Project_1_linux_env.yaml
+
+conda env create --file ML_Model_linux_env.yaml
+```
+
+MacOSX
+
+```
+cd "${project_dir}/MDSC_679/ML_Project_1/conda_envs/macOSX
+
+conda env create --file ML_Project_1_osx_env.yaml
+
+conda env create --file ML_Model_osx_env.yaml
+
+```
+
+Install the ML_Project_1 conda environment from scratch.
 
 ```
 # Create the ML_Project_1_env conda environment
