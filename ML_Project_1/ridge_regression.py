@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 
-from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RepeatedKFold
 from sklearn.linear_model import Ridge
 
@@ -85,7 +85,7 @@ train_size = 0.70
 test_size = 0.30
 
 # Number of k for k-fold cross validation
-k = 10
+k = 5
 
 # Number of repeats. (Number of iterations).
 num_repeats = 10
@@ -119,21 +119,24 @@ scores = cross_val_score(model,
 print('CV Mean: ', np.mean(scores))
 print('STD: ', np.std(scores))
     
-# Find optimal alpha with a randomized search.
-alpha = arange(0, 8, 0.0001)
+# Find optimal alpha with a grid search.
+alphas = arange(0, 1, 0.0001)
 
-print(len(alpha))
+print(len(alphas))
 
 # Perform the randomized search to optimize hypertuning parameters.
-param_grid = {'alpha': alpha}
-rand_search = RandomizedSearchCV(estimator=model, param_distributions=param_grid, n_iter=10000)
+param_grid = {'alpha': alphas}
+grid = GridSearchCV(estimator=model, param_grid=dict(alpha=alphas))
+grid.fit(x_train, y_train)
 
-rand_search.fit(x_train, y_train)
-best_alpha = rand_search.best_estimator_.alpha
+# Summarize the results of the grid search
+print(grid.best_score_)
+print(grid.best_estimator_.alpha)
 
-print(rand_search.best_estimator_.alpha)
-#print(rand_search.best_score_)
-print(best_alpha)
+best_alpha = grid.best_estimator_.alpha
+
+
+print("Best alpha: ", best_alpha)
 
 # The metrics output file.
 metrics_outfile = os.path.join(output_dir, "_".join([filename, "ridge_regression_metrics.tsv"]))
