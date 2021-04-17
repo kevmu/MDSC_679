@@ -39,9 +39,33 @@ Linux OS
 ```
 cd "${project_dir}/MDSC_679/ML_Project_1/conda_envs/LinuxOS
 
+# Create the ML_Project_1 conda environment.
 conda env create --file ML_Project_1_linux_env.yaml
 
+# Activate conda environment
+conda activate ML_Project_1_env
+
+## Need to install R libraries
+# Open the R console terminal.
+R
+
+## In R terminal
+
+# Install rMVP.
+install.packages("rMVP", dependencies=TRUE)
+
+# Test library is installed.
+library("rMVP")
+
+# Exit the R console terminal.
+q()
+
+# Create the ML_Model conda environment
 conda env create --file ML_Model_linux_env.yaml
+
+# Activate conda environment
+conda activate ML_Model_env
+
 ```
 
 MacOSX
@@ -49,9 +73,32 @@ MacOSX
 ```
 cd "${project_dir}/MDSC_679/ML_Project_1/conda_envs/macOSX
 
+# Create the ML_Project_1 conda environment
 conda env create --file ML_Project_1_osx_env.yaml
 
-conda env create --file ML_Model_osx_env.yaml
+# Activate conda environment
+conda activate ML_Project_1_env
+
+## Need to install R libraries
+# Open the R console terminal.
+R
+
+## In R terminal
+
+# Install rMVP.
+install.packages("rMVP", dependencies=TRUE)
+
+# Test library is installed.
+library("rMVP")
+
+# Exit the R console terminal.
+q()
+
+# Create the ML_Model conda environment
+conda env create --file ML_Model_env
+
+# Activate conda environment
+conda activate ML_Model_env
 
 ```
 
