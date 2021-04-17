@@ -1,0 +1,15 @@
+itemA	transaction_ids	itemA_support	itemB	itemB_support	subset	subset_support	confidence	confidence_rules	lift	leverage	conviction
+B,C,E	20,30	0.500	B	0.750	C,E	0.500	0.667	(B => C,E), confidence = support(B,C,E)/support(B) = (0.500/0.750) * 100 = 66.667%	0.889	1.333	0.750
+B,C,E	20,30	0.500	C	0.750	B,E	0.750	0.667	(C => B,E), confidence = support(B,C,E)/support(C) = (0.500/0.750) * 100 = 66.667%	0.889	0.889	0.750
+B,C,E	20,30	0.500	E	0.750	B,C	0.500	0.667	(E => B,C), confidence = support(B,C,E)/support(E) = (0.500/0.750) * 100 = 66.667%	0.889	1.333	0.750
+B,C,E	20,30	0.500	B,C	0.500	E	0.750	1.000	(B,C => E), confidence = support(B,C,E)/support(B,C) = (0.500/0.500) * 100 = 100.000%	2.000	1.333	inf
+B,C,E	20,30	0.500	B,E	0.750	C	0.750	0.667	(B,E => C), confidence = support(B,C,E)/support(B,E) = (0.500/0.750) * 100 = 66.667%	0.889	0.889	0.750
+B,C,E	20,30	0.500	C,E	0.500	B	0.750	1.000	(C,E => B), confidence = support(B,C,E)/support(C,E) = (0.500/0.500) * 100 = 100.000%	2.000	1.333	inf
+A,C	10,30	0.500	A	0.500	C	0.750	1.000	(A => C), confidence = support(A,C)/support(A) = (0.500/0.500) * 100 = 100.000%	2.000	1.333	inf
+A,C	10,30	0.500	C	0.750	A	0.500	0.667	(C => A), confidence = support(A,C)/support(C) = (0.500/0.750) * 100 = 66.667%	0.889	1.333	0.750
+B,C	20,30	0.500	B	0.750	C	0.750	0.667	(B => C), confidence = support(B,C)/support(B) = (0.500/0.750) * 100 = 66.667%	0.889	0.889	0.750
+B,C	20,30	0.500	C	0.750	B	0.750	0.667	(C => B), confidence = support(B,C)/support(C) = (0.500/0.750) * 100 = 66.667%	0.889	0.889	0.750
+B,E	20,30,40	0.750	B	0.750	E	0.750	1.000	(B => E), confidence = support(B,E)/support(B) = (0.750/0.750) * 100 = 100.000%	1.333	1.333	inf
+B,E	20,30,40	0.750	E	0.750	B	0.750	1.000	(E => B), confidence = support(B,E)/support(E) = (0.750/0.750) * 100 = 100.000%	1.333	1.333	inf
+C,E	20,30	0.500	C	0.750	E	0.750	0.667	(C => E), confidence = support(C,E)/support(C) = (0.500/0.750) * 100 = 66.667%	0.889	0.889	0.750
+C,E	20,30	0.500	E	0.750	C	0.750	0.667	(E => C), confidence = support(C,E)/support(E) = (0.500/0.750) * 100 = 66.667%	0.889	0.889	0.750
